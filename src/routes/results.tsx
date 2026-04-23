@@ -1,8 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, AlertTriangle, CheckCircle2, MinusCircle } from "lucide-react";
-import { loadSuppliers, SUPPLIER_CATALOG, type SupplierInfo } from "@/lib/suppliers";
+import {
+  ShieldCheck,
+  AlertTriangle,
+  CheckCircle2,
+  MinusCircle,
+  MapPin,
+  Sparkles,
+  Download,
+  Compass,
+} from "lucide-react";
+import {
+  loadUserSuppliers,
+  resolveSupplier,
+  locationFor,
+  isEUCountry,
+  type UserSupplier,
+  type SupplierInfo,
+} from "@/lib/suppliers";
 
 export const Route = createFileRoute("/results")({
   head: () => ({
@@ -10,41 +26,61 @@ export const Route = createFileRoute("/results")({
       { title: "Riskanalys — EUROstack Verified" },
       {
         name: "description",
-        content: "Se EU vs icke-EU fördelning av era leverantörer och en risk per leverantör.",
+        content:
+          "EU vs icke-EU fördelning, geografiska dataflöden och risk per leverantör.",
       },
       { property: "og:title", content: "Din EUROstack-riskanalys" },
       {
         property: "og:description",
-        content: "Vilka av era leverantörer är EU-baserade?",
+        content: "Visualisering av EU vs icke-EU exponering i din leverantörskedja.",
       },
     ],
   }),
   component: ResultsPage,
 });
 
-type Resolved = { input: string; info: SupplierInfo | null };
+type Resolved = {
+  user: UserSupplier;
+  catalog: SupplierInfo | null;
+  region: "EU" | "non-EU" | "Okänd";
+  country: string;
+  location: string;
+};
 
-function resolve(name: string): Resolved {
-  const key = Object.keys(SUPPLIER_CATALOG).find(
-    (k) => k.toLowerCase() === name.toLowerCase(),
-  );
-  return { input: name, info: key ? SUPPLIER_CATALOG[key] : null };
+function buildResolved(u: UserSupplier): Resolved {
+  const catalog = resolveSupplier(u.name);
+  const country = u.country.trim() || catalog?.country || "Okänd";
+  let region: "EU" | "non-EU" | "Okänd";
+  if (catalog) region = catalog.region;
+  else if (!u.country.trim()) region = "Okänd";
+  else region = isEUCountry(u.country) ? "EU" : "non-EU";
+  const location =
+    locationFor(u.name) ??
+    (region === "EU"
+      ? `${country} (EU)`
+      : region === "non-EU"
+        ? `${country} (non-EU)`
+        : "Okänd lagringsplats");
+  return { user: u, catalog, region, country, location };
 }
 
 function ResultsPage() {
   const [items, setItems] = useState<Resolved[]>([]);
 
   useEffect(() => {
-    setItems(loadSuppliers().map(resolve));
+    setItems(loadUserSuppliers().map(buildResolved));
   }, []);
 
-  const eu = items.filter((i) => i.info?.region === "EU").length;
-  const nonEu = items.filter((i) => i.info?.region === "non-EU").length;
-  const unknown = items.filter((i) => !i.info).length;
-  const total = items.length || 1;
-  const euPct = (eu / total) * 100;
-  const nonEuPct = (nonEu / total) * 100;
-  const unknownPct = (unknown / total) * 100;
+  const stats = useMemo(() => {
+    const eu = items.filter((i) => i.region === "EU").length;
+    const nonEu = items.filter((i) => i.region === "non-EU").length;
+    const unknown = items.filter((i) => i.region === "Okänd").length;
+    const total = items.length;
+    const high = items.filter((i) => riskFor(i) === "high").length;
+    const nonEuPct = total ? Math.round((nonEu / total) * 100) : 0;
+    const euPct = total ? Math.round((eu / total) * 100) : 0;
+    return { eu, nonEu, unknown, total, high, nonEuPct, euPct };
+  }, [items]);
 
   return (
     <div className="min-h-screen bg-[image:var(--gradient-sky)]">
@@ -55,20 +91,23 @@ function ResultsPage() {
           </div>
           <span className="text-lg font-bold tracking-tight">EUROstack</span>
         </Link>
-        <Link to="/suppliers" className="text-sm text-muted-foreground hover:text-foreground">
-          Redigera lista
+        <Link
+          to="/suppliers"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← Redigera leverantörer
         </Link>
       </header>
 
-      <main className="container mx-auto max-w-4xl px-6 py-12">
+      <main className="container mx-auto max-w-5xl px-6 py-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <span className="inline-block rounded-full bg-secondary px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-secondary-foreground">
-            Steg 3 av 3 — Resultat
+            Steg 3 av 3 · Resultat
           </span>
           <h1 className="mt-4 text-balance text-4xl font-black tracking-tight md:text-5xl">
-            Din leverantörs-{" "}
+            Er digitala{" "}
             <span className="bg-[image:var(--gradient-hero)] bg-clip-text text-transparent">
-              karta
+              leverantörskarta
             </span>
           </h1>
         </motion.div>
@@ -76,7 +115,7 @@ function ResultsPage() {
         {items.length === 0 ? (
           <div className="mt-10 rounded-3xl border border-border bg-card p-10 text-center">
             <p className="text-muted-foreground">
-              Du har inte registrerat några leverantörer än.
+              Inga leverantörer registrerade ännu.
             </p>
             <Link
               to="/suppliers"
@@ -87,54 +126,97 @@ function ResultsPage() {
           </div>
         ) : (
           <>
-            {/* Measurement bar */}
+            {/* Donut + stats */}
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="mt-10 rounded-3xl border border-border bg-card p-8 shadow-[var(--shadow-soft)]"
+              className="mt-10 grid gap-6 rounded-3xl border border-border bg-card p-8 shadow-[var(--shadow-soft)] md:grid-cols-[auto_1fr]"
             >
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                EU vs icke-EU fördelning
-              </h2>
-
-              <div className="mt-6 flex h-12 overflow-hidden rounded-2xl bg-muted">
-                {eu > 0 && (
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${euPct}%` }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="flex items-center justify-center bg-success text-xs font-bold text-success-foreground"
-                  >
-                    {euPct > 10 && `${Math.round(euPct)}%`}
-                  </motion.div>
-                )}
-                {nonEu > 0 && (
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${nonEuPct}%` }}
-                    transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-                    className="flex items-center justify-center bg-destructive text-xs font-bold text-destructive-foreground"
-                  >
-                    {nonEuPct > 10 && `${Math.round(nonEuPct)}%`}
-                  </motion.div>
-                )}
-                {unknown > 0 && (
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${unknownPct}%` }}
-                    transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-                    className="flex items-center justify-center bg-muted-foreground/40 text-xs font-bold text-foreground"
-                  >
-                    {unknownPct > 10 && `${Math.round(unknownPct)}%`}
-                  </motion.div>
-                )}
+              <Donut
+                eu={stats.eu}
+                nonEu={stats.nonEu}
+                unknown={stats.unknown}
+                total={stats.total}
+              />
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  EU vs icke-EU fördelning
+                </h2>
+                <div className="mt-4 grid gap-3">
+                  <Legend
+                    color="bg-success"
+                    label="EU-baserade"
+                    value={stats.eu}
+                    pct={stats.euPct}
+                  />
+                  <Legend
+                    color="bg-destructive"
+                    label="Icke-EU"
+                    value={stats.nonEu}
+                    pct={stats.nonEuPct}
+                  />
+                  {stats.unknown > 0 && (
+                    <Legend
+                      color="bg-muted-foreground/40"
+                      label="Okänd"
+                      value={stats.unknown}
+                      pct={
+                        stats.total
+                          ? Math.round((stats.unknown / stats.total) * 100)
+                          : 0
+                      }
+                    />
+                  )}
+                </div>
               </div>
+            </motion.section>
 
-              <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                <Stat label="EU-baserade" value={eu} color="success" />
-                <Stat label="Icke-EU" value={nonEu} color="destructive" />
-                <Stat label="Okänd" value={unknown} color="muted" />
+            {/* Geographic data flow */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="mt-8 rounded-3xl border border-border bg-card p-8 shadow-[var(--shadow-soft)]"
+            >
+              <div className="mb-5 flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" />
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Var lagras er data?
+                </h2>
+              </div>
+              <div className="grid gap-2">
+                {items.map((it, i) => (
+                  <motion.div
+                    key={it.user.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + i * 0.04 }}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-background/60 px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`inline-block h-2.5 w-2.5 rounded-full ${
+                          it.region === "EU"
+                            ? "bg-success"
+                            : it.region === "non-EU"
+                              ? "bg-destructive"
+                              : "bg-muted-foreground/40"
+                        }`}
+                      />
+                      <span className="font-semibold">{it.user.name}</span>
+                      {it.user.system && (
+                        <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-secondary-foreground">
+                          {it.user.system}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5" />
+                      {it.location}
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </motion.section>
 
@@ -148,10 +230,47 @@ function ResultsPage() {
               <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 Riskanalys per leverantör
               </h2>
-              <div className="grid gap-3">
+              <div className="grid gap-3 md:grid-cols-2">
                 {items.map((it, i) => (
-                  <RiskRow key={it.input + i} item={it} index={i} />
+                  <RiskCard key={it.user.id} item={it} index={i} />
                 ))}
+              </div>
+            </motion.section>
+
+            {/* AI Insight */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mt-8 overflow-hidden rounded-3xl border border-border bg-[image:var(--gradient-card)] p-8 shadow-[var(--shadow-soft)]"
+            >
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+                <Sparkles className="h-3.5 w-3.5" />
+                AI-insikt
+              </div>
+              <h2 className="text-2xl font-black tracking-tight md:text-3xl">
+                Sammanfattning av er exponering
+              </h2>
+              <p className="mt-3 text-base text-muted-foreground md:text-lg">
+                {buildInsight(stats)}
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  onClick={() => exportReport(items, stats)}
+                  className="inline-flex items-center gap-2 rounded-2xl border-2 border-border bg-background px-5 py-3 text-sm font-bold transition-all hover:border-primary hover:bg-primary/5"
+                >
+                  <Download className="h-4 w-4" />
+                  Exportera rapport
+                </button>
+                <button
+                  onClick={() =>
+                    alert("EU-alternativ-katalogen är på väg — vi mailar dig så snart den är live.")
+                  }
+                  className="inline-flex items-center gap-2 rounded-2xl bg-[image:var(--gradient-hero)] px-5 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
+                >
+                  <Compass className="h-4 w-4" />
+                  Få EU-alternativ
+                </button>
               </div>
             </motion.section>
           </>
@@ -164,99 +283,262 @@ function ResultsPage() {
   );
 }
 
-function Stat({
+function riskFor(it: Resolved): "low" | "medium" | "high" {
+  if (it.catalog) return it.catalog.risk;
+  if (it.region === "EU") return "low";
+  if (it.region === "non-EU") return "high";
+  return "medium";
+}
+
+function noteFor(it: Resolved): string {
+  if (it.catalog) return it.catalog.riskNote;
+  if (it.region === "EU")
+    return "EU-baserad leverantör — inom GDPR-jurisdiktion.";
+  if (it.region === "non-EU")
+    return "Utanför EU — kan vara exponerad mot CLOUD Act eller liknande lagstiftning.";
+  return "Land saknas — fyll i för att få en korrekt bedömning.";
+}
+
+function Legend({
+  color,
   label,
   value,
-  color,
+  pct,
 }: {
+  color: string;
   label: string;
   value: number;
-  color: "success" | "destructive" | "muted";
+  pct: number;
 }) {
-  const map = {
-    success: "bg-success/10 text-success-foreground border-success/30",
-    destructive: "bg-destructive/10 text-destructive border-destructive/30",
-    muted: "bg-muted text-foreground border-border",
-  };
   return (
-    <div className={`rounded-2xl border-2 p-4 ${map[color]}`}>
-      <div className="text-3xl font-black">{value}</div>
-      <div className="text-xs font-semibold uppercase tracking-wider opacity-80">
-        {label}
+    <div className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-4 py-2.5">
+      <div className="flex items-center gap-3">
+        <span className={`h-3 w-3 rounded-full ${color}`} />
+        <span className="text-sm font-semibold">{label}</span>
+      </div>
+      <div className="flex items-baseline gap-2">
+        <span className="text-lg font-black">{value}</span>
+        <span className="text-xs text-muted-foreground">({pct}%)</span>
       </div>
     </div>
   );
 }
 
-function RiskRow({ item, index }: { item: Resolved; index: number }) {
-  const info = item.info;
-  const risk = info?.risk ?? "medium";
-  const riskMap = {
+function Donut({
+  eu,
+  nonEu,
+  unknown,
+  total,
+}: {
+  eu: number;
+  nonEu: number;
+  unknown: number;
+  total: number;
+}) {
+  const size = 180;
+  const stroke = 28;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const safeTotal = total || 1;
+  const euLen = (eu / safeTotal) * c;
+  const nonEuLen = (nonEu / safeTotal) * c;
+  const unknownLen = (unknown / safeTotal) * c;
+
+  return (
+    <div className="relative flex items-center justify-center">
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="var(--muted)"
+          strokeWidth={stroke}
+        />
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="var(--success)"
+          strokeWidth={stroke}
+          strokeDasharray={`${euLen} ${c}`}
+          initial={{ strokeDasharray: `0 ${c}` }}
+          animate={{ strokeDasharray: `${euLen} ${c}` }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        />
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="var(--destructive)"
+          strokeWidth={stroke}
+          strokeDasharray={`${nonEuLen} ${c}`}
+          strokeDashoffset={-euLen}
+          initial={{ strokeDasharray: `0 ${c}` }}
+          animate={{ strokeDasharray: `${nonEuLen} ${c}` }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+        />
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="var(--muted-foreground)"
+          strokeOpacity={0.4}
+          strokeWidth={stroke}
+          strokeDasharray={`${unknownLen} ${c}`}
+          strokeDashoffset={-(euLen + nonEuLen)}
+          initial={{ strokeDasharray: `0 ${c}` }}
+          animate={{ strokeDasharray: `${unknownLen} ${c}` }}
+          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="text-3xl font-black">{total}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          leverantörer
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RiskCard({ item, index }: { item: Resolved; index: number }) {
+  const risk = riskFor(item);
+  const map = {
     low: {
       icon: CheckCircle2,
       label: "Låg risk",
-      cls: "bg-success/10 text-success-foreground border-success/40",
-      iconCls: "text-success",
+      cls: "border-success/40 bg-success/5",
+      iconCls: "text-success bg-success/15",
+      pillCls: "bg-success/15 text-success-foreground",
     },
     medium: {
       icon: MinusCircle,
       label: "Medel risk",
-      cls: "bg-warning/10 text-warning-foreground border-warning/40",
-      iconCls: "text-warning",
+      cls: "border-warning/40 bg-warning/5",
+      iconCls: "text-warning bg-warning/15",
+      pillCls: "bg-warning/15 text-warning-foreground",
     },
     high: {
       icon: AlertTriangle,
       label: "Hög risk",
-      cls: "bg-destructive/10 text-destructive border-destructive/40",
-      iconCls: "text-destructive",
+      cls: "border-destructive/40 bg-destructive/5",
+      iconCls: "text-destructive bg-destructive/15",
+      pillCls: "bg-destructive/15 text-destructive",
     },
-  };
-  const r = riskMap[risk];
+  } as const;
+  const r = map[risk];
   const Icon = r.icon;
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.3 + index * 0.05 }}
-      className="grid grid-cols-1 items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm md:grid-cols-[1fr_auto_auto]"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 + index * 0.04 }}
+      className={`flex flex-col gap-3 rounded-2xl border-2 p-5 shadow-sm ${r.cls}`}
     >
-      <div>
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-bold tracking-tight">
-            {info?.name ?? item.input}
-          </h3>
-          {info && (
-            <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-secondary-foreground">
-              {info.category}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-bold tracking-tight">{item.user.name}</h3>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="rounded-full bg-background px-2 py-0.5 font-bold uppercase tracking-wider">
+              {item.user.type}
             </span>
-          )}
+            <span>{item.country}</span>
+          </div>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {info ? info.riskNote : "Okänd leverantör — manuell granskning rekommenderas."}
-        </p>
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${r.iconCls}`}>
+          <Icon className="h-5 w-5" />
+        </div>
       </div>
-      <div className="text-sm font-semibold">
-        {info ? (
-          <span
-            className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
-              info.region === "EU"
-                ? "bg-success/15 text-success-foreground"
-                : "bg-destructive/15 text-destructive"
-            }`}
-          >
-            {info.country}
-          </span>
-        ) : (
-          <span className="text-muted-foreground">—</span>
-        )}
-      </div>
-      <div
-        className={`inline-flex items-center gap-2 rounded-full border-2 px-3 py-1.5 text-xs font-bold ${r.cls}`}
-      >
-        <Icon className={`h-4 w-4 ${r.iconCls}`} />
-        {r.label}
+      <p className="text-sm text-muted-foreground">{noteFor(item)}</p>
+      <div className="flex items-center justify-between">
+        <span className={`inline-block rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${r.pillCls}`}>
+          {r.label}
+        </span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {item.region}
+        </span>
       </div>
     </motion.div>
   );
+}
+
+function buildInsight(stats: {
+  eu: number;
+  nonEu: number;
+  unknown: number;
+  total: number;
+  high: number;
+  nonEuPct: number;
+  euPct: number;
+}): string {
+  if (stats.total === 0) return "Inga leverantörer att analysera ännu.";
+  const parts: string[] = [];
+  parts.push(
+    `${stats.nonEuPct}% av era ${stats.total} leverantörer är baserade utanför EU.`,
+  );
+  if (stats.high > 0) {
+    parts.push(
+      `${stats.high} av dem klassas som högrisk — ofta på grund av exponering mot CLOUD Act eller liknande utomeuropeisk lagstiftning.`,
+    );
+  }
+  if (stats.unknown > 0) {
+    parts.push(
+      `${stats.unknown} leverantör${stats.unknown === 1 ? "" : "er"} saknar landinformation och bör granskas manuellt.`,
+    );
+  }
+  if (stats.nonEuPct > 50) {
+    parts.push(
+      "Vi rekommenderar att ni ser över strategin och successivt diversifierar mot EU-baserade alternativ för bättre compliance och riskreducering.",
+    );
+  } else if (stats.nonEuPct > 20) {
+    parts.push(
+      "Ni har en god bas men flera kritiska beroenden ligger utanför EU — börja med att ersätta de mest exponerade.",
+    );
+  } else {
+    parts.push(
+      "Ni har en stark EU-position. Säkerställ dokumentation och fortsätt undvika nya icke-EU beroenden.",
+    );
+  }
+  return parts.join(" ");
+}
+
+function exportReport(
+  items: Resolved[],
+  stats: { eu: number; nonEu: number; unknown: number; total: number; high: number },
+) {
+  if (typeof window === "undefined") return;
+  const lines = [
+    "EUROstack Verified — Riskrapport",
+    `Genererad: ${new Date().toLocaleString("sv-SE")}`,
+    "",
+    `Totalt: ${stats.total} leverantörer`,
+    `EU: ${stats.eu}  ·  Icke-EU: ${stats.nonEu}  ·  Okänd: ${stats.unknown}`,
+    `Högrisk: ${stats.high}`,
+    "",
+    "Leverantör | Typ | Land | Region | Lagring | Risk | Notering",
+    "-----------------------------------------------------------",
+    ...items.map((i) =>
+      [
+        i.user.name,
+        i.user.type,
+        i.country,
+        i.region,
+        i.location,
+        riskFor(i),
+        noteFor(i),
+      ].join(" | "),
+    ),
+  ];
+  const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "eurostack-rapport.txt";
+  a.click();
+  URL.revokeObjectURL(url);
 }

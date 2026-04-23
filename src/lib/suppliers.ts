@@ -7,6 +7,65 @@ export type SupplierInfo = {
   riskNote: string;
 };
 
+export type SupplierType =
+  | "SaaS"
+  | "Cloud"
+  | "Konsult"
+  | "Infrastruktur"
+  | "AI"
+  | "Annat";
+
+export const SUPPLIER_TYPES: SupplierType[] = [
+  "SaaS",
+  "Cloud",
+  "Konsult",
+  "Infrastruktur",
+  "AI",
+  "Annat",
+];
+
+export type UserSupplier = {
+  id: string;
+  name: string;
+  type: SupplierType;
+  country: string;
+  system?: string;
+};
+
+/** Storage location used by each supplier we know about. */
+export const SUPPLIER_LOCATION: Record<string, string> = {
+  Microsoft: "Virginia, USA (non-EU)",
+  Google: "Iowa, USA (non-EU)",
+  AWS: "Virginia, USA (non-EU)",
+  Azure: "Virginia, USA (non-EU)",
+  ChatGPT: "Texas, USA (non-EU)",
+  Slack: "California, USA (non-EU)",
+  Dropbox: "California, USA (non-EU)",
+  Zoom: "California, USA (non-EU)",
+  Salesforce: "California, USA (non-EU)",
+  Notion: "California, USA (non-EU)",
+  Nextcloud: "Frankfurt, Germany (EU)",
+  OVHcloud: "Roubaix, France (EU)",
+  Hetzner: "Falkenstein, Germany (EU)",
+  Mistral: "Paris, France (EU)",
+  Proton: "Geneva, Switzerland (EU)",
+  Element: "Dublin, Ireland (EU)",
+  IONOS: "Karlsruhe, Germany (EU)",
+  Scaleway: "Paris, France (EU)",
+};
+
+const EU_COUNTRIES = new Set([
+  "sverige","sweden","tyskland","germany","frankrike","france","spanien","spain",
+  "italien","italy","nederländerna","netherlands","danmark","denmark","norge","norway",
+  "finland","polen","poland","irland","ireland","belgien","belgium","österrike","austria",
+  "portugal","schweiz","switzerland","estland","estonia","lettland","latvia","litauen","lithuania",
+  "tjeckien","czechia","grekland","greece","ungern","hungary","rumänien","romania","eu",
+]);
+
+export function isEUCountry(country: string): boolean {
+  return EU_COUNTRIES.has(country.trim().toLowerCase());
+}
+
 export const SUPPLIER_CATALOG: Record<string, SupplierInfo> = {
   Microsoft: {
     name: "Microsoft 365",
@@ -156,19 +215,36 @@ export const SUPPLIER_CATALOG: Record<string, SupplierInfo> = {
 
 export const POPULAR_SUPPLIERS = Object.keys(SUPPLIER_CATALOG);
 
-const STORAGE_KEY = "eurostack_suppliers";
+const STORAGE_KEY = "eurostack_user_suppliers";
 
-export function saveSuppliers(suppliers: string[]) {
+export function saveUserSuppliers(suppliers: UserSupplier[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(suppliers));
 }
 
-export function loadSuppliers(): string[] {
+export function loadUserSuppliers(): UserSupplier[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    return raw ? (JSON.parse(raw) as UserSupplier[]) : [];
   } catch {
     return [];
   }
+}
+
+/** Resolve a user-entered supplier against the catalog (case-insensitive). */
+export function resolveSupplier(name: string): SupplierInfo | null {
+  const key = Object.keys(SUPPLIER_CATALOG).find(
+    (k) =>
+      k.toLowerCase() === name.toLowerCase() ||
+      SUPPLIER_CATALOG[k].name.toLowerCase() === name.toLowerCase(),
+  );
+  return key ? SUPPLIER_CATALOG[key] : null;
+}
+
+export function locationFor(name: string): string | null {
+  const key = Object.keys(SUPPLIER_LOCATION).find(
+    (k) => k.toLowerCase() === name.toLowerCase(),
+  );
+  return key ? SUPPLIER_LOCATION[key] : null;
 }

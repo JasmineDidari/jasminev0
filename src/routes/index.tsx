@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, Newspaper, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Newspaper, ShieldCheck, Sparkles, Globe2, BarChart3, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -46,6 +46,24 @@ const blogs = [
   },
 ];
 
+const features = [
+  {
+    icon: Globe2,
+    title: "Geografisk översikt",
+    text: "Se exakt var er data faktiskt lagras — region för region.",
+  },
+  {
+    icon: BarChart3,
+    title: "EU vs icke-EU",
+    text: "Visuell fördelning av er stack på 30 sekunder.",
+  },
+  {
+    icon: Lock,
+    title: "Compliance-redo",
+    text: "GDPR, NIS2 och CLOUD Act — riskbedömt per leverantör.",
+  },
+];
+
 function Index() {
   return (
     <div className="min-h-screen bg-background">
@@ -79,14 +97,15 @@ function Index() {
             EUROstack Verified
           </span>
           <h1 className="mt-6 text-balance text-5xl font-black tracking-tight md:text-7xl">
-            Är dina leverantörer{" "}
+            Förstå var er{" "}
             <span className="bg-[image:var(--gradient-hero)] bg-clip-text text-transparent">
-              EU-säkra?
+              data faktiskt flödar
             </span>
           </h1>
           <p className="mt-6 text-balance text-lg text-muted-foreground md:text-xl">
-            Ta vårt 2-minuters quiz och få en konkret riskbedömning av varje
-            leverantör i din digitala stack.
+            EUROstack hjälper er kartlägga exponering mot EU- och icke-EU
+            leverantörer — och visualiserar hur er tekniska data rör sig mellan
+            regioner.
           </p>
 
           <motion.div
@@ -98,7 +117,7 @@ function Index() {
               to="/quiz"
               className="group inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-8 py-5 text-lg font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
             >
-              Starta quizet
+              Starta analys
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
           </motion.div>
@@ -106,6 +125,26 @@ function Index() {
             Gratis · Ingen registrering · Tar 2 minuter
           </p>
         </motion.div>
+
+        {/* Feature strip */}
+        <div className="mx-auto mt-16 grid max-w-5xl gap-4 md:grid-cols-3">
+          {features.map((f, i) => (
+            <motion.div
+              key={f.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              className="rounded-2xl border border-border bg-card p-6 shadow-sm"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary">
+                <f.icon className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="mt-4 text-base font-bold tracking-tight">{f.title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{f.text}</p>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
       {/* Blog cards */}

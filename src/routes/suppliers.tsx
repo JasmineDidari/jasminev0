@@ -1,52 +1,100 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { ShieldCheck, Plus, X, ArrowRight } from "lucide-react";
-import { POPULAR_SUPPLIERS, saveSuppliers, loadSuppliers } from "@/lib/suppliers";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShieldCheck, Plus, Trash2, ArrowRight, Server, Sparkles } from "lucide-react";
+import {
+  loadUserSuppliers,
+  saveUserSuppliers,
+  SUPPLIER_TYPES,
+  POPULAR_SUPPLIERS,
+  SUPPLIER_CATALOG,
+  type UserSupplier,
+  type SupplierType,
+} from "@/lib/suppliers";
 
 export const Route = createFileRoute("/suppliers")({
   head: () => ({
     meta: [
-      { title: "Dina leverantörer — EUROstack Verified" },
+      { title: "Registrera leverantörer — EUROstack Verified" },
       {
         name: "description",
-        content: "Registrera vilka digitala leverantörer ni använder idag.",
+        content:
+          "Lägg till era nuvarande tech-leverantörer för en konkret EU vs icke-EU riskanalys.",
       },
-      { property: "og:title", content: "Registrera leverantörer" },
+      { property: "og:title", content: "Registrera era tech-leverantörer" },
       {
         property: "og:description",
-        content: "Lägg in din nuvarande stack och få en EU-vs-icke-EU analys.",
+        content: "Bygg en bild av er digitala leverantörskedja.",
       },
     ],
   }),
   component: SuppliersPage,
 });
 
+function newId() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+function emptyRow(): UserSupplier {
+  return { id: newId(), name: "", type: "SaaS", country: "", system: "" };
+}
+
 function SuppliersPage() {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState<string[]>([]);
-  const [custom, setCustom] = useState("");
+  const [rows, setRows] = useState<UserSupplier[]>([]);
 
   useEffect(() => {
-    setSelected(loadSuppliers());
+    const stored = loadUserSuppliers();
+    setRows(stored.length > 0 ? stored : [emptyRow()]);
   }, []);
 
-  function toggle(name: string) {
-    setSelected((s) =>
-      s.includes(name) ? s.filter((x) => x !== name) : [...s, name],
-    );
+  function update<K extends keyof UserSupplier>(
+    id: string,
+    key: K,
+    value: UserSupplier[K],
+  ) {
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, [key]: value } : r)));
   }
 
-  function addCustom() {
-    const v = custom.trim();
-    if (v && !selected.includes(v)) {
-      setSelected([...selected, v]);
-      setCustom("");
-    }
+  function add() {
+    setRows((rs) => [...rs, emptyRow()]);
   }
+
+  function remove(id: string) {
+    setRows((rs) => (rs.length > 1 ? rs.filter((r) => r.id !== id) : rs));
+  }
+
+  function quickAdd(name: string) {
+    const known = SUPPLIER_CATALOG[name];
+    setRows((rs) => {
+      if (rs.some((r) => r.name.toLowerCase() === name.toLowerCase())) return rs;
+      const filled: UserSupplier = {
+        id: newId(),
+        name: known?.name ?? name,
+        type: (known?.category === "Cloud"
+          ? "Cloud"
+          : known?.category === "AI"
+            ? "AI"
+            : "SaaS") as SupplierType,
+        country: known?.country ?? "",
+        system: "",
+      };
+      // Replace first empty row if it exists, else append
+      const idx = rs.findIndex((r) => !r.name.trim());
+      if (idx >= 0) {
+        const copy = [...rs];
+        copy[idx] = filled;
+        return copy;
+      }
+      return [...rs, filled];
+    });
+  }
+
+  const valid = rows.filter((r) => r.name.trim());
+  const canSubmit = valid.length > 0;
 
   function submit() {
-    saveSuppliers(selected);
+    saveUserSuppliers(valid);
     navigate({ to: "/results" });
   }
 
@@ -59,103 +107,154 @@ function SuppliersPage() {
           </div>
           <span className="text-lg font-bold tracking-tight">EUROstack</span>
         </Link>
+        <Link to="/quiz" className="text-sm text-muted-foreground hover:text-foreground">
+          ← Tillbaka till quiz
+        </Link>
       </header>
 
-      <main className="container mx-auto max-w-3xl px-6 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+      <main className="container mx-auto max-w-4xl px-6 py-12">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <span className="inline-block rounded-full bg-secondary px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-secondary-foreground">
-            Steg 2 av 3
+            Steg 2 av 3 · Leverantörer
           </span>
           <h1 className="mt-4 text-balance text-4xl font-black tracking-tight md:text-5xl">
-            Vilka leverantörer{" "}
+            Lägg till era{" "}
             <span className="bg-[image:var(--gradient-hero)] bg-clip-text text-transparent">
-              använder ni idag?
+              tech suppliers
             </span>
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Markera de tjänster ni faktiskt använder. Vi bedömer risken på nästa sida.
+            Registrera de leverantörer ni använder idag. Vi bedömer risken på
+            nästa steg.
           </p>
         </motion.div>
 
-        <div className="mt-10 rounded-3xl border border-border bg-card p-8 shadow-[var(--shadow-soft)]">
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Vanliga leverantörer
-          </h3>
+        {/* Quick-add chips */}
+        <div className="mt-8 rounded-3xl border border-border bg-card p-6 shadow-sm">
+          <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            Snabbval
+          </div>
           <div className="flex flex-wrap gap-2">
-            {POPULAR_SUPPLIERS.map((name) => {
-              const active = selected.includes(name);
-              return (
-                <button
-                  key={name}
-                  onClick={() => toggle(name)}
-                  className={`rounded-full border-2 px-4 py-2 text-sm font-semibold transition-all ${
-                    active
-                      ? "border-primary bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
-                      : "border-border bg-background hover:border-primary/50"
-                  }`}
-                >
-                  {name}
-                </button>
-              );
-            })}
+            {POPULAR_SUPPLIERS.slice(0, 12).map((name) => (
+              <button
+                key={name}
+                onClick={() => quickAdd(name)}
+                className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold transition-all hover:border-primary hover:bg-primary/5"
+              >
+                + {name}
+              </button>
+            ))}
           </div>
-
-          <h3 className="mb-3 mt-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Lägg till egen
-          </h3>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={custom}
-              onChange={(e) => setCustom(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addCustom()}
-              placeholder="t.ex. Trello, Figma..."
-              className="flex-1 rounded-2xl border-2 border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none"
-            />
-            <button
-              onClick={addCustom}
-              className="inline-flex items-center gap-2 rounded-2xl border-2 border-border bg-background px-4 py-3 text-sm font-semibold hover:border-primary"
-            >
-              <Plus className="h-4 w-4" /> Lägg till
-            </button>
-          </div>
-
-          {selected.length > 0 && (
-            <div className="mt-8 border-t border-border pt-6">
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Valda ({selected.length})
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {selected.map((s) => (
-                  <span
-                    key={s}
-                    className="inline-flex items-center gap-2 rounded-full bg-accent/30 px-3 py-1.5 text-sm font-medium text-accent-foreground"
-                  >
-                    {s}
-                    <button onClick={() => toggle(s)} aria-label={`Ta bort ${s}`}>
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        <div className="mt-8 flex justify-end">
+        {/* Supplier cards */}
+        <div className="mt-6 space-y-4">
+          <AnimatePresence initial={false}>
+            {rows.map((row, idx) => (
+              <motion.div
+                key={row.id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.25 }}
+                className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]"
+              >
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <Server className="h-3.5 w-3.5 text-primary" />
+                    Leverantör #{idx + 1}
+                  </div>
+                  <button
+                    onClick={() => remove(row.id)}
+                    disabled={rows.length === 1}
+                    aria-label="Ta bort leverantör"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Leverantörsnamn">
+                    <input
+                      value={row.name}
+                      onChange={(e) => update(row.id, "name", e.target.value)}
+                      placeholder="t.ex. Microsoft 365"
+                      className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
+                    />
+                  </Field>
+                  <Field label="Typ">
+                    <select
+                      value={row.type}
+                      onChange={(e) =>
+                        update(row.id, "type", e.target.value as SupplierType)
+                      }
+                      className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
+                    >
+                      {SUPPLIER_TYPES.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Land">
+                    <input
+                      value={row.country}
+                      onChange={(e) => update(row.id, "country", e.target.value)}
+                      placeholder="t.ex. USA, Tyskland"
+                      className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
+                    />
+                  </Field>
+                  <Field label="System (valfritt)">
+                    <input
+                      value={row.system ?? ""}
+                      onChange={(e) => update(row.id, "system", e.target.value)}
+                      placeholder="t.ex. CRM, mail, lagring"
+                      className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
+                    />
+                  </Field>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          <button
+            onClick={add}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-background/50 py-4 text-sm font-semibold text-muted-foreground transition-all hover:border-primary hover:bg-primary/5 hover:text-primary"
+          >
+            <Plus className="h-4 w-4" />
+            Lägg till leverantör
+          </button>
+        </div>
+
+        <div className="mt-10 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {valid.length} leverantör{valid.length === 1 ? "" : "er"} registrerade
+          </p>
           <button
             onClick={submit}
-            disabled={selected.length === 0}
+            disabled={!canSubmit}
             className="group inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-8 py-4 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Visa min riskanalys
+            Analysera leverantörer
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
       </main>
     </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+      {children}
+    </label>
   );
 }

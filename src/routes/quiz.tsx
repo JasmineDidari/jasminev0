@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, ShieldCheck, CheckCircle2, Check, X, HelpCircle } from "lucide-react";
 
 export const Route = createFileRoute("/quiz")({
   head: () => ({
@@ -21,71 +21,54 @@ export const Route = createFileRoute("/quiz")({
   component: QuizPage,
 });
 
-type Q = { q: string; options: { label: string; score: number }[] };
+type Answer = "ja" | "nej" | "osaker";
+type Q = { q: string };
 
 const QUESTIONS: Q[] = [
-  {
-    q: "Vet du var ert företags data faktiskt lagras?",
-    options: [
-      { label: "Ja, exakt vilka datacenter", score: 2 },
-      { label: "Ungefär — i 'molnet'", score: 1 },
-      { label: "Nej, ingen aning", score: 0 },
-    ],
-  },
-  {
-    q: "Hur många av era kärnverktyg är EU-baserade?",
-    options: [
-      { label: "De flesta", score: 2 },
-      { label: "Några", score: 1 },
-      { label: "Inga", score: 0 },
-    ],
-  },
-  {
-    q: "Är ni medvetna om CLOUD Act och dess konsekvenser?",
-    options: [
-      { label: "Ja, vi har analyserat risken", score: 2 },
-      { label: "Hört talas om det", score: 1 },
-      { label: "Vad är CLOUD Act?", score: 0 },
-    ],
-  },
-  {
-    q: "Har ni en plan för NIS2-efterlevnad?",
-    options: [
-      { label: "Ja, vi är redo", score: 2 },
-      { label: "Vi har börjat", score: 1 },
-      { label: "Inte än", score: 0 },
-    ],
-  },
-  {
-    q: "Skulle ni klara er om ert amerikanska SaaS-konto stängdes imorgon?",
-    options: [
-      { label: "Absolut, vi har backup", score: 2 },
-      { label: "Det skulle bli jobbigt", score: 1 },
-      { label: "Det vore en katastrof", score: 0 },
-    ],
-  },
+  { q: "Vet du var era IT-leverantörer är baserade?" },
+  { q: "Använder ni amerikanska molntjänster i kritiska system?" },
+  { q: "Vet du var er data faktiskt lagras geografiskt?" },
+  { q: "Har ni dokumentation för alla era leverantörer?" },
+  { q: "Är ni medvetna om CLOUD Act och dess konsekvenser?" },
+];
+
+// Score per question: a "good" answer gives 2 points, "osäker" 1, "bad" 0.
+// Q2 is reversed (using US cloud is bad), the rest reward "ja".
+function scoreFor(qIndex: number, a: Answer): number {
+  const goodIsJa = qIndex !== 1;
+  if (a === "osaker") return 1;
+  if (goodIsJa) return a === "ja" ? 2 : 0;
+  return a === "nej" ? 2 : 0;
+}
+
+const OPTIONS: { value: Answer; label: string; icon: typeof Check }[] = [
+  { value: "ja", label: "Ja", icon: Check },
+  { value: "nej", label: "Nej", icon: X },
+  { value: "osaker", label: "Osäker", icon: HelpCircle },
 ];
 
 function QuizPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<number[]>([]);
+  const [answers, setAnswers] = useState<Answer[]>([]);
   const [done, setDone] = useState(false);
 
   const total = QUESTIONS.length;
   const progress = ((step + (done ? 1 : 0)) / total) * 100;
 
-  function answer(score: number) {
-    const next = [...answers, score];
+  function answer(a: Answer) {
+    const next = [...answers, a];
     setAnswers(next);
     if (step + 1 < total) {
       setStep(step + 1);
     } else {
       setDone(true);
+      // Auto-advance to suppliers after a brief celebration
+      setTimeout(() => navigate({ to: "/suppliers" }), 1800);
     }
   }
 
-  const score = answers.reduce((a, b) => a + b, 0);
+  const score = answers.reduce((acc, a, i) => acc + scoreFor(i, a), 0);
   const max = total * 2;
   const verdict =
     score >= max * 0.7
@@ -101,7 +84,7 @@ function QuizPage() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[image:var(--gradient-hero)]">
             <ShieldCheck className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold tracking-tight">EUROstack</span>
+          <span className="text-lg font-bold tracking-tight">EUROstack Verified – Snabb kontroll</span>
         </Link>
         <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
           Avbryt
@@ -138,16 +121,22 @@ function QuizPage() {
                 {QUESTIONS[step].q}
               </h2>
               <div className="mt-8 grid gap-3">
-                {QUESTIONS[step].options.map((o) => (
-                  <button
-                    key={o.label}
-                    onClick={() => answer(o.score)}
-                    className="group flex items-center justify-between rounded-2xl border-2 border-border bg-background px-6 py-4 text-left font-medium transition-all hover:border-primary hover:bg-primary/5"
-                  >
-                    <span>{o.label}</span>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground transition-all group-hover:translate-x-1 group-hover:text-primary" />
-                  </button>
-                ))}
+                {OPTIONS.map((o) => {
+                  const Icon = o.icon;
+                  return (
+                    <button
+                      key={o.value}
+                      onClick={() => answer(o.value)}
+                      className="group flex items-center justify-between rounded-2xl border-2 border-border bg-background px-6 py-4 text-left font-medium transition-all hover:border-primary hover:bg-primary/5"
+                    >
+                      <span className="flex items-center gap-3">
+                        <Icon className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
+                        {o.label}
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-all group-hover:translate-x-1 group-hover:text-primary" />
+                    </button>
+                  );
+                })}
               </div>
               {step > 0 && (
                 <button
@@ -182,7 +171,7 @@ function QuizPage() {
                 </div>
               </div>
               <p className="mt-8 text-sm text-muted-foreground">
-                Nästa steg: registrera era leverantörer för att få en konkret riskanalys.
+                Tar dig vidare till leverantörsregistreringen…
               </p>
               <button
                 onClick={() => navigate({ to: "/suppliers" })}
