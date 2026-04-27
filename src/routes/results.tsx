@@ -10,12 +10,14 @@ import {
   Sparkles,
   Download,
   Compass,
+  ChevronDown,
 } from "lucide-react";
 import {
   loadUserSuppliers,
   resolveSupplier,
   locationFor,
   isEUCountry,
+  alternativesFor,
   type UserSupplier,
   type SupplierInfo,
 } from "@/lib/suppliers";
@@ -227,9 +229,14 @@ function ResultsPage() {
               transition={{ delay: 0.2 }}
               className="mt-8"
             >
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Riskanalys per leverantör
-              </h2>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Klickbar riskanalys per leverantör
+                </h2>
+                <a href="#eu-alternativ" className="text-sm font-bold text-primary hover:text-foreground">
+                  Visa EU-alternativ
+                </a>
+              </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {items.map((it, i) => (
                   <RiskCard key={it.user.id} item={it} index={i} />
@@ -239,6 +246,7 @@ function ResultsPage() {
 
             {/* AI Insight */}
             <motion.section
+              id="eu-alternativ"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -251,9 +259,9 @@ function ResultsPage() {
               <h2 className="text-2xl font-black tracking-tight md:text-3xl">
                 Sammanfattning av er exponering
               </h2>
-              <p className="mt-3 text-base text-muted-foreground md:text-lg">
-                {buildInsight(stats)}
-              </p>
+              <div className="mt-3 space-y-3 text-base text-muted-foreground md:text-lg">
+                {buildInsight(stats).map((line) => <p key={line}>{line}</p>)}
+              </div>
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
                   onClick={() => exportReport(items, stats)}
@@ -406,6 +414,7 @@ function Donut({
 }
 
 function RiskCard({ item, index }: { item: Resolved; index: number }) {
+  const [open, setOpen] = useState(false);
   const risk = riskFor(item);
   const map = {
     low: {
@@ -434,11 +443,13 @@ function RiskCard({ item, index }: { item: Resolved; index: number }) {
   const Icon = r.icon;
 
   return (
-    <motion.div
+    <motion.button
+      type="button"
+      onClick={() => setOpen((v) => !v)}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 + index * 0.04 }}
-      className={`flex flex-col gap-3 rounded-2xl border-2 p-5 shadow-sm ${r.cls}`}
+      className={`flex flex-col gap-3 rounded-2xl border-2 p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)] ${r.cls}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -450,8 +461,11 @@ function RiskCard({ item, index }: { item: Resolved; index: number }) {
             <span>{item.country}</span>
           </div>
         </div>
-        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${r.iconCls}`}>
-          <Icon className="h-5 w-5" />
+        <div className="flex items-center gap-2">
+          <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${r.iconCls}`}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
         </div>
       </div>
       <p className="text-sm text-muted-foreground">{noteFor(item)}</p>
@@ -463,7 +477,19 @@ function RiskCard({ item, index }: { item: Resolved; index: number }) {
           {item.region}
         </span>
       </div>
-    </motion.div>
+      {open && (
+        <div className="rounded-2xl border border-border bg-background/70 p-4 text-sm text-muted-foreground">
+          <p className="font-semibold text-foreground">EU-alternativ</p>
+          <p className="mt-1">{alternativesFor(item.user.name, item.catalog?.category).join(" · ")}</p>
+          {item.user.mustKeep && (
+            <p className="mt-3">
+              Behåll tills vidare: säkra DPA/SCC, minimera persondata, kräv EU-datalagring,
+              sätt exit-plan och prioritera DORA/NIS2-dokumentation.
+            </p>
+          )}
+        </div>
+      )}
+    </motion.button>
   );
 }
 
@@ -475,8 +501,8 @@ function buildInsight(stats: {
   high: number;
   nonEuPct: number;
   euPct: number;
-}): string {
-  if (stats.total === 0) return "Inga leverantörer att analysera ännu.";
+}): string[] {
+  if (stats.total === 0) return ["Inga leverantörer att analysera ännu."];
   const parts: string[] = [];
   parts.push(
     `${stats.nonEuPct}% av era ${stats.total} leverantörer är baserade utanför EU.`,
@@ -504,7 +530,10 @@ function buildInsight(stats: {
       "Ni har en stark EU-position. Säkerställ dokumentation och fortsätt undvika nya icke-EU beroenden.",
     );
   }
-  return parts.join(" ");
+  parts.push(
+    "Compliance-viktning: DORA ges högst prioritet för kritiska system, följt av NIS2, GDPR, digital suveränitet, Data Act och EU-certifiering som bevis på kontroller.",
+  );
+  return parts;
 }
 
 function exportReport(

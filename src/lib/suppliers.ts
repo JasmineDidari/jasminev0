@@ -30,6 +30,7 @@ export type UserSupplier = {
   type: SupplierType;
   country: string;
   system?: string;
+  mustKeep?: boolean;
 };
 
 /** Storage location used by each supplier we know about. */
@@ -215,6 +216,19 @@ export const SUPPLIER_CATALOG: Record<string, SupplierInfo> = {
 
 export const POPULAR_SUPPLIERS = Object.keys(SUPPLIER_CATALOG);
 
+export const EU_ALTERNATIVES: Record<string, string[]> = {
+  Microsoft: ["Nextcloud", "Proton", "IONOS"],
+  Google: ["Nextcloud", "Proton", "Element"],
+  AWS: ["OVHcloud", "Hetzner", "Scaleway"],
+  Azure: ["OVHcloud", "IONOS", "Hetzner"],
+  ChatGPT: ["Mistral", "Scaleway"],
+  Slack: ["Element", "Proton"],
+  Dropbox: ["Nextcloud", "Proton"],
+  Zoom: ["Element", "IONOS"],
+  Salesforce: ["Nextcloud", "IONOS"],
+  Notion: ["Nextcloud", "Element"],
+};
+
 const STORAGE_KEY = "eurostack_user_suppliers";
 
 export function saveUserSuppliers(suppliers: UserSupplier[]) {
@@ -247,4 +261,15 @@ export function locationFor(name: string): string | null {
     (k) => k.toLowerCase() === name.toLowerCase(),
   );
   return key ? SUPPLIER_LOCATION[key] : null;
+}
+
+export function alternativesFor(name: string, category?: string): string[] {
+  const key = Object.keys(EU_ALTERNATIVES).find((k) =>
+    name.toLowerCase().includes(k.toLowerCase()),
+  );
+  if (key) return EU_ALTERNATIVES[key];
+  if (category === "Cloud") return ["OVHcloud", "Hetzner", "Scaleway"];
+  if (category === "AI") return ["Mistral", "Scaleway"];
+  if (category === "Kommunikation") return ["Element", "Proton"];
+  return ["Nextcloud", "IONOS", "Proton"];
 }

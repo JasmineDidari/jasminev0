@@ -63,8 +63,8 @@ function QuizPage() {
       setStep(step + 1);
     } else {
       setDone(true);
-      // Auto-advance to suppliers after a brief celebration
-      setTimeout(() => navigate({ to: "/suppliers" }), 1800);
+      // Auto-advance to results after the supplier measurement quiz
+      setTimeout(() => navigate({ to: "/results" }), 1800);
     }
   }
 
@@ -84,10 +84,10 @@ function QuizPage() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[image:var(--gradient-hero)]">
             <ShieldCheck className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold tracking-tight">EUROstack Verified – Snabb kontroll</span>
+          <span className="text-lg font-bold tracking-tight">EUROstack Verified – Mätning</span>
         </Link>
-        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
-          Avbryt
+        <Link to="/suppliers" className="text-sm text-muted-foreground hover:text-foreground">
+          ← Leverantörer
         </Link>
       </header>
 
@@ -171,13 +171,13 @@ function QuizPage() {
                 </div>
               </div>
               <p className="mt-8 text-sm text-muted-foreground">
-                Tar dig vidare till leverantörsregistreringen…
+                Tar dig vidare till riskanalysen…
               </p>
               <button
-                onClick={() => navigate({ to: "/suppliers" })}
+                onClick={() => navigate({ to: "/results" })}
                 className="group mt-6 inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-8 py-4 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
               >
-                Registrera leverantörer
+                Visa riskanalys
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </button>
             </motion.div>

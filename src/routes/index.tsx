@@ -26,6 +26,7 @@ const blogs = [
   {
     tag: "Pris",
     title: "Microsoft höjer priserna",
+    slug: "microsoft-prices",
     excerpt:
       "Nya licensavgifter från Q1 nästa år träffar svenska företag hårt. Så förbereder du dig.",
     accent: "from-[oklch(0.78_0.18_60)] to-[oklch(0.7_0.2_30)]",
@@ -33,6 +34,7 @@ const blogs = [
   {
     tag: "Lag",
     title: "Ny NIS2-lag träder in",
+    slug: "nis2",
     excerpt:
       "Skärpta krav på cybersäkerhet — vad NIS2 betyder för din leverantörskedja.",
     accent: "from-[oklch(0.55_0.22_265)] to-[oklch(0.7_0.2_285)]",
@@ -40,6 +42,7 @@ const blogs = [
   {
     tag: "Geopolitik",
     title: "ChatGPT har flyttat till Kina",
+    slug: "chatgpt-china",
     excerpt:
       "OpenAI:s nya datacenterplaner väcker frågor om var dina prompts faktiskt landar.",
     accent: "from-[oklch(0.7_0.18_150)] to-[oklch(0.6_0.18_180)]",
@@ -77,7 +80,7 @@ function Index() {
         </div>
         <nav className="hidden gap-8 text-sm font-medium text-muted-foreground md:flex">
           <a href="#nyheter" className="hover:text-foreground">Nyheter</a>
-          <a href="#quiz" className="hover:text-foreground">Quiz</a>
+          <Link to="/how-it-works" className="hover:text-foreground">Så fungerar det</Link>
         </nav>
       </header>
 
@@ -114,11 +117,17 @@ function Index() {
             className="mt-10"
           >
             <Link
-              to="/quiz"
+              to="/suppliers"
               className="group inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-8 py-5 text-lg font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
             >
-              Starta analys
+              Registrera tech suppliers
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link
+              to="/how-it-works"
+              className="ml-3 inline-flex items-center gap-2 rounded-2xl border-2 border-border bg-card px-6 py-5 text-lg font-bold shadow-sm transition-all hover:border-primary hover:bg-primary/5"
+            >
+              Så fungerar det
             </Link>
           </motion.div>
           <p className="mt-4 text-sm text-muted-foreground">
@@ -163,7 +172,7 @@ function Index() {
 
         <div className="grid gap-6 md:grid-cols-3">
           {blogs.map((b, i) => (
-            <motion.article
+            <motion.div
               key={b.title}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -171,23 +180,21 @@ function Index() {
               transition={{ duration: 0.5, delay: i * 0.1 }}
               className="group cursor-pointer overflow-hidden rounded-3xl border border-border bg-[image:var(--gradient-card)] p-1 shadow-sm transition-all hover:shadow-[var(--shadow-soft)]"
             >
-              <div
-                className={`h-32 rounded-2xl bg-gradient-to-br ${b.accent}`}
-              />
-              <div className="p-6">
-                <span className="inline-block rounded-full bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-wider text-secondary-foreground">
-                  {b.tag}
-                </span>
-                <h3 className="mt-4 text-xl font-bold tracking-tight">
-                  {b.title}
-                </h3>
-                <p className="mt-2 text-sm text-muted-foreground">{b.excerpt}</p>
-                <div className="mt-4 flex items-center gap-1 text-sm font-semibold text-primary">
-                  Läs mer
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              <Link to="/news/$slug" params={{ slug: b.slug }} className="block h-full">
+                <div className={`h-32 rounded-2xl bg-gradient-to-br ${b.accent}`} />
+                <div className="p-6">
+                  <span className="inline-block rounded-full bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-wider text-secondary-foreground">
+                    {b.tag}
+                  </span>
+                  <h3 className="mt-4 text-xl font-bold tracking-tight">{b.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{b.excerpt}</p>
+                  <div className="mt-4 flex items-center gap-1 text-sm font-semibold text-primary">
+                    Läs mer
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </div>
                 </div>
-              </div>
-            </motion.article>
+              </Link>
+            </motion.div>
           ))}
         </div>
       </section>
