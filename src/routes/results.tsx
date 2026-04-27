@@ -501,8 +501,8 @@ function buildInsight(stats: {
   high: number;
   nonEuPct: number;
   euPct: number;
-}): string {
-  if (stats.total === 0) return "Inga leverantörer att analysera ännu.";
+}): string[] {
+  if (stats.total === 0) return ["Inga leverantörer att analysera ännu."];
   const parts: string[] = [];
   parts.push(
     `${stats.nonEuPct}% av era ${stats.total} leverantörer är baserade utanför EU.`,
@@ -530,7 +530,10 @@ function buildInsight(stats: {
       "Ni har en stark EU-position. Säkerställ dokumentation och fortsätt undvika nya icke-EU beroenden.",
     );
   }
-  return parts.join(" ");
+  parts.push(
+    "Compliance-viktning: DORA ges högst prioritet för kritiska system, följt av NIS2, GDPR, digital suveränitet, Data Act och EU-certifiering som bevis på kontroller.",
+  );
+  return parts;
 }
 
 function exportReport(
