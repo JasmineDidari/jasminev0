@@ -174,7 +174,7 @@ function QuizPage() {
                 Tar dig vidare till riskanalysen…
               </p>
               <button
-                onClick={() => navigate({ to: "/suppliers" })}
+                onClick={() => navigate({ to: "/results" })}
                 className="group mt-6 inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-8 py-4 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
               >
                 Visa riskanalys
