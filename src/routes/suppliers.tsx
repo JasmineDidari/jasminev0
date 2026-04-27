@@ -36,7 +36,7 @@ function newId() {
 }
 
 function emptyRow(): UserSupplier {
-  return { id: newId(), name: "", type: "SaaS", country: "", system: "" };
+  return { id: newId(), name: "", type: "SaaS", country: "", system: "", mustKeep: false };
 }
 
 function SuppliersPage() {
@@ -78,6 +78,7 @@ function SuppliersPage() {
             : "SaaS") as SupplierType,
         country: known?.country ?? "",
         system: "",
+        mustKeep: false,
       };
       // Replace first empty row if it exists, else append
       const idx = rs.findIndex((r) => !r.name.trim());
@@ -95,7 +96,7 @@ function SuppliersPage() {
 
   function submit() {
     saveUserSuppliers(valid);
-    navigate({ to: "/results" });
+    navigate({ to: "/quiz" });
   }
 
   return (
@@ -107,8 +108,8 @@ function SuppliersPage() {
           </div>
           <span className="text-lg font-bold tracking-tight">EUROstack</span>
         </Link>
-        <Link to="/quiz" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Tillbaka till quiz
+        <Link to="/how-it-works" className="text-sm text-muted-foreground hover:text-foreground">
+          Så fungerar det
         </Link>
       </header>
 
@@ -124,8 +125,8 @@ function SuppliersPage() {
             </span>
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Registrera de leverantörer ni använder idag. Vi bedömer risken på
-            nästa steg.
+            Registrera de leverantörer ni använder idag. Markera vilka ni måste
+            behålla även om de är icke-EU, så rekommenderar vi riskreducering.
           </p>
         </motion.div>
 
@@ -217,6 +218,18 @@ function SuppliersPage() {
                     />
                   </Field>
                 </div>
+                <label className="mt-5 flex items-start gap-3 rounded-2xl border border-border bg-background/70 p-4 text-sm font-medium">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(row.mustKeep)}
+                    onChange={(e) => update(row.id, "mustKeep", e.target.checked)}
+                    className="mt-1 h-4 w-4 accent-primary"
+                  />
+                  <span>
+                    Den här leverantören måste vi behålla just nu, även om den
+                    bedöms som icke-EU eller hög risk.
+                  </span>
+                </label>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -239,7 +252,7 @@ function SuppliersPage() {
             disabled={!canSubmit}
             className="group inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-8 py-4 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Analysera leverantörer
+            Fortsätt till mätning/quiz
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
