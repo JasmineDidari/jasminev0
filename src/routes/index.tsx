@@ -26,7 +26,7 @@ const blogs = [
   {
     tag: "Pris",
     title: "Microsoft höjer priserna",
-    path: "/news/microsoft-prices",
+    path: "/news/microsoft-prices" as const,
     excerpt:
       "Nya licensavgifter från Q1 nästa år träffar svenska företag hårt. Så förbereder du dig.",
     accent: "from-[oklch(0.78_0.18_60)] to-[oklch(0.7_0.2_30)]",
@@ -34,7 +34,7 @@ const blogs = [
   {
     tag: "Lag",
     title: "Ny NIS2-lag träder in",
-    path: "/news/nis2",
+    path: "/news/nis2" as const,
     excerpt:
       "Skärpta krav på cybersäkerhet — vad NIS2 betyder för din leverantörskedja.",
     accent: "from-[oklch(0.55_0.22_265)] to-[oklch(0.7_0.2_285)]",
@@ -42,7 +42,7 @@ const blogs = [
   {
     tag: "Geopolitik",
     title: "ChatGPT har flyttat till Kina",
-    path: "/news/chatgpt-china",
+    path: "/news/chatgpt-china" as const,
     excerpt:
       "OpenAI:s nya datacenterplaner väcker frågor om var dina prompts faktiskt landar.",
     accent: "from-[oklch(0.7_0.18_150)] to-[oklch(0.6_0.18_180)]",
