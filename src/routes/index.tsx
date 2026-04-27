@@ -26,7 +26,7 @@ const blogs = [
   {
     tag: "Pris",
     title: "Microsoft höjer priserna",
-    path: "/news/microsoft-prices" as const,
+    slug: "microsoft-prices",
     excerpt:
       "Nya licensavgifter från Q1 nästa år träffar svenska företag hårt. Så förbereder du dig.",
     accent: "from-[oklch(0.78_0.18_60)] to-[oklch(0.7_0.2_30)]",
@@ -34,7 +34,7 @@ const blogs = [
   {
     tag: "Lag",
     title: "Ny NIS2-lag träder in",
-    path: "/news/nis2" as const,
+    slug: "nis2",
     excerpt:
       "Skärpta krav på cybersäkerhet — vad NIS2 betyder för din leverantörskedja.",
     accent: "from-[oklch(0.55_0.22_265)] to-[oklch(0.7_0.2_285)]",
@@ -42,7 +42,7 @@ const blogs = [
   {
     tag: "Geopolitik",
     title: "ChatGPT har flyttat till Kina",
-    path: "/news/chatgpt-china" as const,
+    slug: "chatgpt-china",
     excerpt:
       "OpenAI:s nya datacenterplaner väcker frågor om var dina prompts faktiskt landar.",
     accent: "from-[oklch(0.7_0.18_150)] to-[oklch(0.6_0.18_180)]",
@@ -180,7 +180,7 @@ function Index() {
               transition={{ duration: 0.5, delay: i * 0.1 }}
               className="group cursor-pointer overflow-hidden rounded-3xl border border-border bg-[image:var(--gradient-card)] p-1 shadow-sm transition-all hover:shadow-[var(--shadow-soft)]"
             >
-              <Link to={b.path} className="block h-full">
+              <Link to="/news/$slug" params={{ slug: b.slug }} className="block h-full">
                 <div className={`h-32 rounded-2xl bg-gradient-to-br ${b.accent}`} />
                 <div className="p-6">
                   <span className="inline-block rounded-full bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-wider text-secondary-foreground">
