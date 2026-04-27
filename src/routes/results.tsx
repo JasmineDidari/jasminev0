@@ -10,12 +10,14 @@ import {
   Sparkles,
   Download,
   Compass,
+  ChevronDown,
 } from "lucide-react";
 import {
   loadUserSuppliers,
   resolveSupplier,
   locationFor,
   isEUCountry,
+  alternativesFor,
   type UserSupplier,
   type SupplierInfo,
 } from "@/lib/suppliers";
@@ -227,9 +229,14 @@ function ResultsPage() {
               transition={{ delay: 0.2 }}
               className="mt-8"
             >
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Riskanalys per leverantör
-              </h2>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Klickbar riskanalys per leverantör
+                </h2>
+                <a href="#eu-alternativ" className="text-sm font-bold text-primary hover:text-foreground">
+                  Visa EU-alternativ
+                </a>
+              </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {items.map((it, i) => (
                   <RiskCard key={it.user.id} item={it} index={i} />
@@ -239,6 +246,7 @@ function ResultsPage() {
 
             {/* AI Insight */}
             <motion.section
+              id="eu-alternativ"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -251,9 +259,9 @@ function ResultsPage() {
               <h2 className="text-2xl font-black tracking-tight md:text-3xl">
                 Sammanfattning av er exponering
               </h2>
-              <p className="mt-3 text-base text-muted-foreground md:text-lg">
-                {buildInsight(stats)}
-              </p>
+              <div className="mt-3 space-y-3 text-base text-muted-foreground md:text-lg">
+                {buildInsight(stats).map((line) => <p key={line}>{line}</p>)}
+              </div>
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
                   onClick={() => exportReport(items, stats)}
