@@ -14,6 +14,7 @@ import { Route as ResultsRouteImport } from './routes/results'
 import { Route as QuizRouteImport } from './routes/quiz'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 
 const SuppliersRoute = SuppliersRouteImport.update({
   id: '/suppliers',
@@ -40,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NewsSlugRoute = NewsSlugRouteImport.update({
+  id: '/news/$slug',
+  path: '/news/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/quiz': typeof QuizRoute
   '/results': typeof ResultsRoute
   '/suppliers': typeof SuppliersRoute
+  '/news/$slug': typeof NewsSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/quiz': typeof QuizRoute
   '/results': typeof ResultsRoute
   '/suppliers': typeof SuppliersRoute
+  '/news/$slug': typeof NewsSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/quiz': typeof QuizRoute
   '/results': typeof ResultsRoute
   '/suppliers': typeof SuppliersRoute
+  '/news/$slug': typeof NewsSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/how-it-works' | '/quiz' | '/results' | '/suppliers'
+  fullPaths:
+    | '/'
+    | '/how-it-works'
+    | '/quiz'
+    | '/results'
+    | '/suppliers'
+    | '/news/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/how-it-works' | '/quiz' | '/results' | '/suppliers'
-  id: '__root__' | '/' | '/how-it-works' | '/quiz' | '/results' | '/suppliers'
+  to:
+    | '/'
+    | '/how-it-works'
+    | '/quiz'
+    | '/results'
+    | '/suppliers'
+    | '/news/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/how-it-works'
+    | '/quiz'
+    | '/results'
+    | '/suppliers'
+    | '/news/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +105,7 @@ export interface RootRouteChildren {
   QuizRoute: typeof QuizRoute
   ResultsRoute: typeof ResultsRoute
   SuppliersRoute: typeof SuppliersRoute
+  NewsSlugRoute: typeof NewsSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/news/$slug': {
+      id: '/news/$slug'
+      path: '/news/$slug'
+      fullPath: '/news/$slug'
+      preLoaderRoute: typeof NewsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuizRoute: QuizRoute,
   ResultsRoute: ResultsRoute,
   SuppliersRoute: SuppliersRoute,
+  NewsSlugRoute: NewsSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
