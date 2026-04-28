@@ -96,7 +96,7 @@ function SuppliersPage() {
 
   function submit() {
     setSuppliers(valid);
-    navigate({ to: "/quiz" });
+    navigate({ to: "/results" });
   }
 
   return (
@@ -269,7 +269,7 @@ function SuppliersPage() {
             disabled={!canSubmit}
             className="group inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-8 py-4 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Fortsätt till mätning/quiz
+            Starta mätning
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
