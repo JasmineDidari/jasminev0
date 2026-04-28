@@ -70,6 +70,72 @@ function buildResolved(u: UserSupplier): Resolved {
   return { user: u, catalog, region, country, location };
 }
 
+const defaultProfile: QuizProfile = {
+  securityPriority: true,
+  nis2Priority: true,
+  dataLocationKnown: false,
+  documentationReady: false,
+  cloudActAware: false,
+};
+
+function loadQuizProfile(): QuizProfile {
+  if (typeof window === "undefined") return defaultProfile;
+  try {
+    const answers = JSON.parse(
+      window.localStorage.getItem("eurostack_quiz_answers") ?? "[]",
+    ) as Array<"ja" | "nej" | "osaker">;
+    return {
+      securityPriority: answers[1] !== "nej" || answers[4] === "ja",
+      nis2Priority: answers[3] !== "ja" || answers[4] === "ja",
+      dataLocationKnown: answers[2] === "ja",
+      documentationReady: answers[3] === "ja",
+      cloudActAware: answers[4] === "ja",
+    };
+  } catch {
+    return defaultProfile;
+  }
+}
+
+function weightedCompliance(scores: ComplianceScores, profile = defaultProfile): number {
+  const nis2Weight = profile.nis2Priority ? 0.34 : 0.26;
+  const doraWeight = profile.securityPriority ? 0.31 : 0.25;
+  const sovereigntyWeight = profile.dataLocationKnown ? 0.2 : 0.27;
+  const gdprWeight = Math.max(0.1, 1 - nis2Weight - doraWeight - sovereigntyWeight);
+  return Math.round(
+    scores.nis2 * nis2Weight +
+      scores.dora * doraWeight +
+      scores.sovereignty * sovereigntyWeight +
+      scores.gdpr * gdprWeight,
+  );
+}
+
+function scoresFor(item: Resolved, replacement?: string): ComplianceScores {
+  if (replacement && COMPLIANCE_SCOREBOOK[replacement]) return COMPLIANCE_SCOREBOOK[replacement];
+  const catalogName = item.catalog?.name.replace("Microsoft 365", "Microsoft");
+  if (catalogName && COMPLIANCE_SCOREBOOK[catalogName]) return COMPLIANCE_SCOREBOOK[catalogName];
+  if (item.region === "EU") return { nis2: 82, dora: 76, sovereignty: 88, gdpr: 90 };
+  if (riskFor(item) === "medium") return { nis2: 58, dora: 52, sovereignty: 42, gdpr: 63 };
+  if (riskFor(item) === "high") return { nis2: 38, dora: 34, sovereignty: 22, gdpr: 48 };
+  return { nis2: 50, dora: 46, sovereignty: 40, gdpr: 55 };
+}
+
+function overallCompliance(items: Resolved[], replacements: Record<string, string>) {
+  if (!items.length) return 0;
+  const total = items.reduce(
+    (acc, item) => acc + weightedCompliance(scoresFor(item, replacements[item.user.id])),
+    0,
+  );
+  return Math.round(total / items.length);
+}
+
+function bestMatchFor(item: Resolved, profile: QuizProfile) {
+  const names = alternativesFor(item.user.name, item.catalog?.category);
+  return names
+    .map((name) => ({ name, scores: COMPLIANCE_SCOREBOOK[name] }))
+    .filter((candidate): candidate is { name: string; scores: ComplianceScores } => Boolean(candidate.scores))
+    .sort((a, b) => weightedCompliance(b.scores, profile) - weightedCompliance(a.scores, profile))[0];
+}
+
 function ResultsPage() {
   const [items, setItems] = useState<Resolved[]>([]);
   const [replacements, setReplacements] = useState<Record<string, string>>({});
