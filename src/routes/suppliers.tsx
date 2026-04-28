@@ -36,7 +36,7 @@ function newId() {
 }
 
 function emptyRow(): UserSupplier {
-  return { id: newId(), name: "", type: "SaaS", country: "", system: "", mustKeep: false };
+  return { id: newId(), name: "", type: "SaaS", country: "", system: "", mustKeep: false, criticality: 3 };
 }
 
 function SuppliersPage() {
@@ -79,6 +79,7 @@ function SuppliersPage() {
         country: known?.country ?? "",
         system: "",
         mustKeep: false,
+        criticality: known?.risk === "high" ? 4 : 3,
       };
       // Replace first empty row if it exists, else append
       const idx = rs.findIndex((r) => !r.name.trim());
@@ -216,6 +217,19 @@ function SuppliersPage() {
                       placeholder="t.ex. CRM, mail, lagring"
                       className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
                     />
+                  </Field>
+                  <Field label="Kritikalitet (1–5)">
+                    <select
+                      value={row.criticality ?? 3}
+                      onChange={(e) => update(row.id, "criticality", Number(e.target.value))}
+                      className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
+                    >
+                      {[1, 2, 3, 4, 5].map((level) => (
+                        <option key={level} value={level}>
+                          {level} {level >= 4 ? "— affärskritiskt" : level === 3 ? "— viktigt" : "— lägre påverkan"}
+                        </option>
+                      ))}
+                    </select>
                   </Field>
                 </div>
                 <label className="mt-5 flex items-start gap-3 rounded-2xl border border-border bg-background/70 p-4 text-sm font-medium">
