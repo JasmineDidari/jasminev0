@@ -1,84 +1,64 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft, ShieldCheck, CheckCircle2, Check, X, HelpCircle } from "lucide-react";
-import { useAppState, type QuizAnswer } from "@/lib/app-state";
+import { ArrowLeft, ArrowRight, Check, Database, HelpCircle, Layers3, ShieldCheck } from "lucide-react";
+import {
+  useAppState,
+  type DataType,
+  type ExitReadiness,
+  type Industry,
+  type MainDriver,
+  type Nis2Strictness,
+  type StrategicQuizState,
+} from "@/lib/app-state";
 
 export const Route = createFileRoute("/quiz")({
   head: () => ({
     meta: [
-      { title: "Quiz — EUROstack Verified" },
+      { title: "Strategic Quiz — EUROstack" },
       {
         name: "description",
-        content: "Snabba hook-frågor om din digitala suveränitet och EU-stack.",
+        content: "Samla strategisk kontext inför EU supplier-analys och certifiering.",
       },
-      { property: "og:title", content: "EUROstack Quiz" },
+      { property: "og:title", content: "EUROstack Strategic Quiz" },
       {
         property: "og:description",
-        content: "Är du EUROstack Verified? Svara på 5 frågor.",
+        content: "Bransch, datatyper, EU-lagring, exit-strategi och NIS2-nivå.",
       },
     ],
   }),
   component: QuizPage,
 });
 
-type Answer = QuizAnswer;
-type Q = { q: string };
-
-const QUESTIONS: Q[] = [
-  { q: "Vet du var era IT-leverantörer är baserade?" },
-  { q: "Använder ni amerikanska molntjänster i kritiska system?" },
-  { q: "Vet du var er data faktiskt lagras geografiskt?" },
-  { q: "Har ni dokumentation för alla era leverantörer?" },
-  { q: "Är ni medvetna om CLOUD Act och dess konsekvenser?" },
-];
-
-// Score per question: a "good" answer gives 2 points, "osäker" 1, "bad" 0.
-// Q2 is reversed (using US cloud is bad), the rest reward "ja".
-function scoreFor(qIndex: number, a: Answer): number {
-  const goodIsJa = qIndex !== 1;
-  if (a === "osaker") return 1;
-  if (goodIsJa) return a === "ja" ? 2 : 0;
-  return a === "nej" ? 2 : 0;
-}
-
-const OPTIONS: { value: Answer; label: string; icon: typeof Check }[] = [
-  { value: "ja", label: "Ja", icon: Check },
-  { value: "nej", label: "Nej", icon: X },
-  { value: "osaker", label: "Osäker", icon: HelpCircle },
-];
+const industries: Industry[] = ["Finans", "Hälsa", "Offentlig sektor", "SaaS", "Industri", "Annat"];
+const dataTypes: DataType[] = ["Persondata", "Finansiell data", "Kunddata", "Hälsodata", "Källkod", "Operativ data"];
+const exitOptions: ExitReadiness[] = ["Låg", "Medel", "Hög"];
+const nis2Options: Nis2Strictness[] = ["Inte alls", "Delvis", "Strikt"];
+const driverOptions: MainDriver[] = ["Compliance", "Security", "Cost", "Sovereignty"];
 
 function QuizPage() {
   const navigate = useNavigate();
-  const { setQuizAnswers } = useAppState();
+  const { strategicQuiz, setStrategicQuiz } = useAppState();
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Answer[]>([]);
-  const [done, setDone] = useState(false);
+  const [draft, setDraft] = useState<StrategicQuizState>({ dataTypes: [], ...strategicQuiz });
 
-  const total = QUESTIONS.length;
-  const progress = ((step + (done ? 1 : 0)) / total) * 100;
+  const total = 6;
+  const progress = ((step + 1) / total) * 100;
+  const canContinue = isStepComplete(step, draft);
 
-  function answer(a: Answer) {
-    const next = [...answers, a];
-    setQuizAnswers(next);
-    setAnswers(next);
-    if (step + 1 < total) {
-      setStep(step + 1);
-    } else {
-      setDone(true);
-      // Auto-advance to results after the supplier measurement quiz
-      setTimeout(() => navigate({ to: "/results" }), 1800);
-    }
+  function update(next: Partial<StrategicQuizState>) {
+    setDraft((current) => ({ ...current, ...next }));
   }
 
-  const score = answers.reduce((acc, a, i) => acc + scoreFor(i, a), 0);
-  const max = total * 2;
-  const verdict =
-    score >= max * 0.7
-      ? { title: "Stark stack 💪", text: "Du är på god väg mot full EU-suveränitet." }
-      : score >= max * 0.4
-        ? { title: "Halvvägs där 🌗", text: "Det finns mycket att vinna på en översyn." }
-        : { title: "Hög exponering ⚠️", text: "Din stack är till stor del icke-europeisk." };
+  function next() {
+    if (!canContinue) return;
+    if (step + 1 < total) {
+      setStep((current) => current + 1);
+      return;
+    }
+    setStrategicQuiz(draft);
+    navigate({ to: "/suppliers" });
+  }
 
   return (
     <div className="min-h-screen bg-[image:var(--gradient-sky)]">
@@ -87,18 +67,17 @@ function QuizPage() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[image:var(--gradient-hero)]">
             <ShieldCheck className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold tracking-tight">EUROstack Verified – Mätning</span>
+          <span className="text-lg font-bold tracking-tight">EUROstack Strategic Quiz</span>
         </Link>
         <Link to="/suppliers" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Leverantörer
+          Hoppa till registry
         </Link>
       </header>
 
-      <main className="container mx-auto max-w-2xl px-6 py-12">
-        {/* Progress */}
+      <main className="container mx-auto max-w-3xl px-6 py-12">
         <div className="mb-10">
           <div className="mb-2 flex justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <span>Fråga {Math.min(step + 1, total)} av {total}</span>
+            <span>Fråga {step + 1} av {total}</span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -111,82 +90,151 @@ function QuizPage() {
         </div>
 
         <AnimatePresence mode="wait">
-          {!done ? (
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.3 }}
-              className="rounded-3xl border border-border bg-card p-8 shadow-[var(--shadow-soft)] md:p-10"
-            >
-              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-                {QUESTIONS[step].q}
-              </h2>
-              <div className="mt-8 grid gap-3">
-                {OPTIONS.map((o) => {
-                  const Icon = o.icon;
-                  return (
+          <motion.section
+            key={step}
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -30 }}
+            transition={{ duration: 0.28 }}
+            className="rounded-3xl border border-border bg-card p-8 shadow-[var(--shadow-soft)] md:p-10"
+          >
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+              <Layers3 className="h-3.5 w-3.5" />
+              Page 2 · Context Gathering
+            </div>
+
+            {step === 0 && (
+              <Question title="Vilken bransch är företaget inom?">
+                <OptionGrid values={industries} selected={draft.industry} onSelect={(value) => update({ industry: value as Industry })} />
+              </Question>
+            )}
+
+            {step === 1 && (
+              <Question title="Vilka datatyper hanterar ni primärt?">
+                <div className="grid gap-3 md:grid-cols-2">
+                  {dataTypes.map((type) => {
+                    const selected = draft.dataTypes.includes(type);
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() =>
+                          update({
+                            dataTypes: selected
+                              ? draft.dataTypes.filter((item) => item !== type)
+                              : [...draft.dataTypes, type],
+                          })
+                        }
+                        className={`flex items-center justify-between rounded-2xl border-2 px-5 py-4 text-left font-semibold transition-all ${
+                          selected ? "border-primary bg-primary/10 text-foreground" : "border-border bg-background hover:border-primary"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3"><Database className="h-4 w-4 text-primary" />{type}</span>
+                        {selected && <Check className="h-4 w-4 text-primary" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Question>
+            )}
+
+            {step === 2 && (
+              <Question title="Hur viktig är EU data lagring för er strategi?">
+                <div className="grid grid-cols-5 gap-2">
+                  {[1, 2, 3, 4, 5].map((value) => (
                     <button
-                      key={o.value}
-                      onClick={() => answer(o.value)}
-                      className="group flex items-center justify-between rounded-2xl border-2 border-border bg-background px-6 py-4 text-left font-medium transition-all hover:border-primary hover:bg-primary/5"
+                      key={value}
+                      type="button"
+                      onClick={() => update({ euStorageImportance: value })}
+                      className={`rounded-2xl border-2 py-5 text-2xl font-black transition-all ${
+                        draft.euStorageImportance === value ? "border-primary bg-primary/10 text-primary" : "border-border bg-background hover:border-primary"
+                      }`}
                     >
-                      <span className="flex items-center gap-3">
-                        <Icon className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
-                        {o.label}
-                      </span>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-all group-hover:translate-x-1 group-hover:text-primary" />
+                      {value}
                     </button>
-                  );
-                })}
-              </div>
-              {step > 0 && (
-                <button
-                  onClick={() => {
-                    setAnswers(answers.slice(0, -1));
-                    setStep(step - 1);
-                  }}
-                  className="mt-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-                >
-                  <ArrowLeft className="h-4 w-4" /> Tillbaka
-                </button>
-              )}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="result"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="rounded-3xl border border-border bg-card p-10 text-center shadow-[var(--shadow-soft)]"
-            >
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[image:var(--gradient-hero)] shadow-[var(--shadow-glow)]">
-                <CheckCircle2 className="h-8 w-8 text-primary-foreground" />
-              </div>
-              <h2 className="mt-6 text-3xl font-black tracking-tight">{verdict.title}</h2>
-              <p className="mt-3 text-muted-foreground">{verdict.text}</p>
-              <div className="mt-6 inline-block rounded-2xl bg-secondary px-6 py-3">
-                <div className="text-xs font-semibold uppercase tracking-wider text-secondary-foreground">
-                  Din score
+                  ))}
                 </div>
-                <div className="text-3xl font-black text-secondary-foreground">
-                  {score} / {max}
-                </div>
-              </div>
-              <p className="mt-8 text-sm text-muted-foreground">
-                Tar dig vidare till riskanalysen…
-              </p>
+              </Question>
+            )}
+
+            {step === 3 && (
+              <Question title="Hur ser beredskap ut för avstängning av utländska tjänster (Exit-strategi)?">
+                <OptionGrid values={exitOptions} selected={draft.exitReadiness} onSelect={(value) => update({ exitReadiness: value as ExitReadiness })} />
+              </Question>
+            )}
+
+            {step === 4 && (
+              <Question title="Hur strikt regleras ni av NIS2?">
+                <OptionGrid values={nis2Options} selected={draft.nis2Strictness} onSelect={(value) => update({ nis2Strictness: value as Nis2Strictness })} />
+              </Question>
+            )}
+
+            {step === 5 && (
+              <Question title="Viktigaste drivkraft?">
+                <OptionGrid values={driverOptions} selected={draft.mainDriver} onSelect={(value) => update({ mainDriver: value as MainDriver })} />
+              </Question>
+            )}
+
+            <div className="mt-8 flex items-center justify-between gap-3">
               <button
-                onClick={() => navigate({ to: "/results" })}
-                className="group mt-6 inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-8 py-4 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
+                type="button"
+                onClick={() => setStep((current) => Math.max(0, current - 1))}
+                disabled={step === 0}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
               >
-                Visa riskanalys
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                <ArrowLeft className="h-4 w-4" /> Tillbaka
               </button>
-            </motion.div>
-          )}
+              <button
+                type="button"
+                onClick={next}
+                disabled={!canContinue}
+                className="inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-6 py-3 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {step + 1 === total ? "Fortsätt till registry" : "Nästa"}
+                <ArrowRight className="h-5 w-5" />
+              </button>
+            </div>
+          </motion.section>
         </AnimatePresence>
       </main>
     </div>
   );
+}
+
+function Question({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h1 className="text-balance text-3xl font-black tracking-tight md:text-4xl">{title}</h1>
+      <div className="mt-8">{children}</div>
+    </div>
+  );
+}
+
+function OptionGrid({ values, selected, onSelect }: { values: string[]; selected?: string; onSelect: (value: string) => void }) {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {values.map((value) => (
+        <button
+          key={value}
+          type="button"
+          onClick={() => onSelect(value)}
+          className={`group flex items-center justify-between rounded-2xl border-2 px-5 py-4 text-left font-semibold transition-all ${
+            selected === value ? "border-primary bg-primary/10 text-foreground" : "border-border bg-background hover:border-primary hover:bg-primary/5"
+          }`}
+        >
+          <span className="flex items-center gap-3"><HelpCircle className="h-4 w-4 text-primary" />{value}</span>
+          <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function isStepComplete(step: number, draft: StrategicQuizState) {
+  if (step === 0) return Boolean(draft.industry);
+  if (step === 1) return draft.dataTypes.length > 0;
+  if (step === 2) return Boolean(draft.euStorageImportance);
+  if (step === 3) return Boolean(draft.exitReadiness);
+  if (step === 4) return Boolean(draft.nis2Strictness);
+  return Boolean(draft.mainDriver);
 }
