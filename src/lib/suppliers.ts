@@ -33,6 +33,21 @@ export type UserSupplier = {
   mustKeep?: boolean;
 };
 
+export type ComplianceScores = {
+  nis2: number;
+  dora: number;
+  sovereignty: number;
+  gdpr: number;
+};
+
+export type QuizProfile = {
+  securityPriority: boolean;
+  nis2Priority: boolean;
+  dataLocationKnown: boolean;
+  documentationReady: boolean;
+  cloudActAware: boolean;
+};
+
 /** Storage location used by each supplier we know about. */
 export const SUPPLIER_LOCATION: Record<string, string> = {
   Microsoft: "Virginia, USA (non-EU)",
@@ -53,6 +68,9 @@ export const SUPPLIER_LOCATION: Record<string, string> = {
   Element: "Dublin, Ireland (EU)",
   IONOS: "Karlsruhe, Germany (EU)",
   Scaleway: "Paris, France (EU)",
+  Exoscale: "Geneva, Switzerland (EU)",
+  UpCloud: "Helsinki, Finland (EU)",
+  "Orange Cloud": "Paris, France (EU)",
 };
 
 const EU_COUNTRIES = new Set([
@@ -212,6 +230,30 @@ export const SUPPLIER_CATALOG: Record<string, SupplierInfo> = {
     risk: "low",
     riskNote: "Fransk hyperscaler.",
   },
+  Exoscale: {
+    name: "Exoscale",
+    region: "EU",
+    country: "Schweiz",
+    category: "Cloud",
+    risk: "low",
+    riskNote: "Europeisk molnplattform med stark datalokalisering och GDPR-fokus.",
+  },
+  UpCloud: {
+    name: "UpCloud",
+    region: "EU",
+    country: "Finland",
+    category: "Cloud",
+    risk: "low",
+    riskNote: "Finsk cloud-leverantör med EU-datacenter och tydlig suveränitetsprofil.",
+  },
+  "Orange Cloud": {
+    name: "Orange Cloud",
+    region: "EU",
+    country: "Frankrike",
+    category: "Cloud",
+    risk: "low",
+    riskNote: "Europeisk enterprise-cloud med stark profil för kritisk infrastruktur.",
+  },
 };
 
 export const POPULAR_SUPPLIERS = Object.keys(SUPPLIER_CATALOG);
@@ -219,14 +261,28 @@ export const POPULAR_SUPPLIERS = Object.keys(SUPPLIER_CATALOG);
 export const EU_ALTERNATIVES: Record<string, string[]> = {
   Microsoft: ["Nextcloud", "Proton", "IONOS"],
   Google: ["Nextcloud", "Proton", "Element"],
-  AWS: ["OVHcloud", "Hetzner", "Scaleway"],
-  Azure: ["OVHcloud", "IONOS", "Hetzner"],
+  AWS: ["Exoscale", "UpCloud", "Orange Cloud", "OVHcloud"],
+  Azure: ["Orange Cloud", "Exoscale", "IONOS", "OVHcloud"],
   ChatGPT: ["Mistral", "Scaleway"],
   Slack: ["Element", "Proton"],
   Dropbox: ["Nextcloud", "Proton"],
   Zoom: ["Element", "IONOS"],
   Salesforce: ["Nextcloud", "IONOS"],
   Notion: ["Nextcloud", "Element"],
+};
+
+export const COMPLIANCE_SCOREBOOK: Record<string, ComplianceScores> = {
+  Exoscale: { nis2: 94, dora: 88, sovereignty: 96, gdpr: 95 },
+  UpCloud: { nis2: 91, dora: 85, sovereignty: 94, gdpr: 93 },
+  "Orange Cloud": { nis2: 96, dora: 94, sovereignty: 93, gdpr: 92 },
+  OVHcloud: { nis2: 92, dora: 90, sovereignty: 94, gdpr: 91 },
+  Hetzner: { nis2: 86, dora: 78, sovereignty: 91, gdpr: 90 },
+  Scaleway: { nis2: 88, dora: 82, sovereignty: 90, gdpr: 89 },
+  IONOS: { nis2: 89, dora: 84, sovereignty: 90, gdpr: 90 },
+  Nextcloud: { nis2: 84, dora: 76, sovereignty: 95, gdpr: 92 },
+  Proton: { nis2: 88, dora: 80, sovereignty: 96, gdpr: 96 },
+  Element: { nis2: 82, dora: 74, sovereignty: 91, gdpr: 89 },
+  Mistral: { nis2: 86, dora: 80, sovereignty: 92, gdpr: 88 },
 };
 
 const STORAGE_KEY = "eurostack_user_suppliers";

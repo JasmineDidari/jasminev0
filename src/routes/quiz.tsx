@@ -58,6 +58,9 @@ function QuizPage() {
 
   function answer(a: Answer) {
     const next = [...answers, a];
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("eurostack_quiz_answers", JSON.stringify(next));
+    }
     setAnswers(next);
     if (step + 1 < total) {
       setStep(step + 1);

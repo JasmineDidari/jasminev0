@@ -11,13 +11,17 @@ import {
   Download,
   Compass,
   ChevronDown,
+  RefreshCcw,
 } from "lucide-react";
 import {
+  COMPLIANCE_SCOREBOOK,
   loadUserSuppliers,
   resolveSupplier,
   locationFor,
   isEUCountry,
   alternativesFor,
+  type ComplianceScores,
+  type QuizProfile,
   type UserSupplier,
   type SupplierInfo,
 } from "@/lib/suppliers";
@@ -66,11 +70,84 @@ function buildResolved(u: UserSupplier): Resolved {
   return { user: u, catalog, region, country, location };
 }
 
+const defaultProfile: QuizProfile = {
+  securityPriority: true,
+  nis2Priority: true,
+  dataLocationKnown: false,
+  documentationReady: false,
+  cloudActAware: false,
+};
+
+function loadQuizProfile(): QuizProfile {
+  if (typeof window === "undefined") return defaultProfile;
+  try {
+    const answers = JSON.parse(
+      window.localStorage.getItem("eurostack_quiz_answers") ?? "[]",
+    ) as Array<"ja" | "nej" | "osaker">;
+    return {
+      securityPriority: answers[1] !== "nej" || answers[4] === "ja",
+      nis2Priority: answers[3] !== "ja" || answers[4] === "ja",
+      dataLocationKnown: answers[2] === "ja",
+      documentationReady: answers[3] === "ja",
+      cloudActAware: answers[4] === "ja",
+    };
+  } catch {
+    return defaultProfile;
+  }
+}
+
+function weightedCompliance(scores: ComplianceScores, profile = defaultProfile): number {
+  const nis2Weight = profile.nis2Priority ? 0.34 : 0.26;
+  const doraWeight = profile.securityPriority ? 0.31 : 0.25;
+  const sovereigntyWeight = profile.dataLocationKnown ? 0.2 : 0.27;
+  const gdprWeight = Math.max(0.1, 1 - nis2Weight - doraWeight - sovereigntyWeight);
+  return Math.round(
+    scores.nis2 * nis2Weight +
+      scores.dora * doraWeight +
+      scores.sovereignty * sovereigntyWeight +
+      scores.gdpr * gdprWeight,
+  );
+}
+
+function scoresFor(item: Resolved, replacement?: string): ComplianceScores {
+  if (replacement && COMPLIANCE_SCOREBOOK[replacement]) return COMPLIANCE_SCOREBOOK[replacement];
+  const catalogName = item.catalog?.name.replace("Microsoft 365", "Microsoft");
+  if (catalogName && COMPLIANCE_SCOREBOOK[catalogName]) return COMPLIANCE_SCOREBOOK[catalogName];
+  if (item.region === "EU") return { nis2: 82, dora: 76, sovereignty: 88, gdpr: 90 };
+  if (riskFor(item) === "medium") return { nis2: 58, dora: 52, sovereignty: 42, gdpr: 63 };
+  if (riskFor(item) === "high") return { nis2: 38, dora: 34, sovereignty: 22, gdpr: 48 };
+  return { nis2: 50, dora: 46, sovereignty: 40, gdpr: 55 };
+}
+
+function overallCompliance(
+  items: Resolved[],
+  replacements: Record<string, string>,
+  profile = defaultProfile,
+) {
+  if (!items.length) return 0;
+  const total = items.reduce(
+    (acc, item) => acc + weightedCompliance(scoresFor(item, replacements[item.user.id]), profile),
+    0,
+  );
+  return Math.round(total / items.length);
+}
+
+function bestMatchFor(item: Resolved, profile: QuizProfile) {
+  const names = alternativesFor(item.user.name, item.catalog?.category);
+  return names
+    .map((name) => ({ name, scores: COMPLIANCE_SCOREBOOK[name] }))
+    .filter((candidate): candidate is { name: string; scores: ComplianceScores } => Boolean(candidate.scores))
+    .sort((a, b) => weightedCompliance(b.scores, profile) - weightedCompliance(a.scores, profile))[0];
+}
+
 function ResultsPage() {
   const [items, setItems] = useState<Resolved[]>([]);
+  const [replacements, setReplacements] = useState<Record<string, string>>({});
+  const [profile, setProfile] = useState<QuizProfile>(defaultProfile);
 
   useEffect(() => {
     setItems(loadUserSuppliers().map(buildResolved));
+    setProfile(loadQuizProfile());
   }, []);
 
   const stats = useMemo(() => {
@@ -83,6 +160,12 @@ function ResultsPage() {
     const euPct = total ? Math.round((eu / total) * 100) : 0;
     return { eu, nonEu, unknown, total, high, nonEuPct, euPct };
   }, [items]);
+
+  const currentScore = useMemo(() => overallCompliance(items, {}, profile), [items, profile]);
+  const simulatedScore = useMemo(
+    () => overallCompliance(items, replacements, profile),
+    [items, replacements, profile],
+  );
 
   return (
     <div className="min-h-screen bg-[image:var(--gradient-sky)]">
@@ -171,6 +254,33 @@ function ResultsPage() {
                     />
                   )}
                 </div>
+                <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                  <div className="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Total Compliance Score
+                      </p>
+                      <p className="mt-1 text-3xl font-black tracking-tight">
+                        {simulatedScore}%
+                      </p>
+                    </div>
+                    <div className="text-right text-sm text-muted-foreground">
+                      <span className="font-bold text-foreground">{currentScore}%</span> nuläge
+                      {simulatedScore > currentScore && (
+                        <span className="ml-2 rounded-full bg-success/15 px-2 py-1 text-xs font-bold text-success-foreground">
+                          +{simulatedScore - currentScore} förbättring
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+                    <motion.div
+                      className="h-full bg-[image:var(--gradient-hero)]"
+                      animate={{ width: `${simulatedScore}%` }}
+                      transition={{ duration: 0.45 }}
+                    />
+                  </div>
+                </div>
               </div>
             </motion.section>
 
@@ -239,7 +349,16 @@ function ResultsPage() {
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {items.map((it, i) => (
-                  <RiskCard key={it.user.id} item={it} index={i} />
+                  <RiskCard
+                    key={it.user.id}
+                    item={it}
+                    index={i}
+                    profile={profile}
+                    replacement={replacements[it.user.id]}
+                    onReplace={(name) =>
+                      setReplacements((current) => ({ ...current, [it.user.id]: name }))
+                    }
+                  />
                 ))}
               </div>
             </motion.section>
@@ -413,9 +532,25 @@ function Donut({
   );
 }
 
-function RiskCard({ item, index }: { item: Resolved; index: number }) {
+function RiskCard({
+  item,
+  index,
+  profile,
+  replacement,
+  onReplace,
+}: {
+  item: Resolved;
+  index: number;
+  profile: QuizProfile;
+  replacement?: string;
+  onReplace: (name: string) => void;
+}) {
   const [open, setOpen] = useState(false);
   const risk = riskFor(item);
+  const match = item.region === "non-EU" ? bestMatchFor(item, profile) : undefined;
+  const currentScores = scoresFor(item);
+  const recommendedScores = match?.scores;
+  const shownScores = replacement ? scoresFor(item, replacement) : currentScores;
   const map = {
     low: {
       icon: CheckCircle2,
@@ -479,8 +614,41 @@ function RiskCard({ item, index }: { item: Resolved; index: number }) {
       </div>
       {open && (
         <div className="rounded-2xl border border-border bg-background/70 p-4 text-sm text-muted-foreground">
-          <p className="font-semibold text-foreground">EU-alternativ</p>
-          <p className="mt-1">{alternativesFor(item.user.name, item.catalog?.category).join(" · ")}</p>
+          {match ? (
+            <div>
+              <p className="font-semibold text-foreground">Bästa EU-matchning</p>
+              <div className="mt-2 rounded-xl border border-primary/20 bg-primary/5 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="font-bold text-foreground">{match.name}</p>
+                    <p className="text-xs">Matchad mot era quiz-svar: Säkerhet, NIS2/DORA och digital suveränitet.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onReplace(match.name);
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl bg-[image:var(--gradient-hero)] px-3 py-2 text-xs font-bold text-primary-foreground"
+                  >
+                    <RefreshCcw className="h-3.5 w-3.5" />
+                    Ersätt med EU-alternativ
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="font-semibold text-foreground">EU-status</p>
+              <p className="mt-1">Leverantören är redan EU-baserad eller behöver kompletteras med land/typ.</p>
+            </>
+          )}
+          <div className="mt-4 grid gap-2">
+            <ScoreRow label="NIS2-ready" value={shownScores.nis2} improved={recommendedScores?.nis2} />
+            <ScoreRow label="DORA-compliant" value={shownScores.dora} improved={recommendedScores?.dora} />
+            <ScoreRow label="Digital Suveränitet" value={shownScores.sovereignty} improved={recommendedScores?.sovereignty} />
+            <ScoreRow label="GDPR-assurance" value={shownScores.gdpr} improved={recommendedScores?.gdpr} />
+          </div>
           {item.user.mustKeep && (
             <p className="mt-3">
               Behåll tills vidare: säkra DPA/SCC, minimera persondata, kräv EU-datalagring,
@@ -490,6 +658,23 @@ function RiskCard({ item, index }: { item: Resolved; index: number }) {
         </div>
       )}
     </motion.button>
+  );
+}
+
+function ScoreRow({ label, value, improved }: { label: string; value: number; improved?: number }) {
+  const target = improved && improved > value ? improved : value;
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between gap-3 text-xs font-bold">
+        <span className="text-foreground">{label}</span>
+        <span>
+          {value}%{improved && improved > value ? ` → ${improved}%` : ""}
+        </span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <div className="h-full rounded-full bg-[image:var(--gradient-hero)]" style={{ width: `${target}%` }} />
+      </div>
+    </div>
   );
 }
 
