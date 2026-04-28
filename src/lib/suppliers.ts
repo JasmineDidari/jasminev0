@@ -31,6 +31,7 @@ export type UserSupplier = {
   country: string;
   system?: string;
   mustKeep?: boolean;
+  criticality?: number;
 };
 
 export type ComplianceScores = {
