@@ -11,13 +11,17 @@ import {
   Download,
   Compass,
   ChevronDown,
+  RefreshCcw,
 } from "lucide-react";
 import {
+  COMPLIANCE_SCOREBOOK,
   loadUserSuppliers,
   resolveSupplier,
   locationFor,
   isEUCountry,
   alternativesFor,
+  type ComplianceScores,
+  type QuizProfile,
   type UserSupplier,
   type SupplierInfo,
 } from "@/lib/suppliers";
@@ -68,9 +72,12 @@ function buildResolved(u: UserSupplier): Resolved {
 
 function ResultsPage() {
   const [items, setItems] = useState<Resolved[]>([]);
+  const [replacements, setReplacements] = useState<Record<string, string>>({});
+  const [profile, setProfile] = useState<QuizProfile>(defaultProfile);
 
   useEffect(() => {
     setItems(loadUserSuppliers().map(buildResolved));
+    setProfile(loadQuizProfile());
   }, []);
 
   const stats = useMemo(() => {
@@ -83,6 +90,12 @@ function ResultsPage() {
     const euPct = total ? Math.round((eu / total) * 100) : 0;
     return { eu, nonEu, unknown, total, high, nonEuPct, euPct };
   }, [items]);
+
+  const currentScore = useMemo(() => overallCompliance(items, {}), [items]);
+  const simulatedScore = useMemo(
+    () => overallCompliance(items, replacements),
+    [items, replacements],
+  );
 
   return (
     <div className="min-h-screen bg-[image:var(--gradient-sky)]">
@@ -171,6 +184,33 @@ function ResultsPage() {
                     />
                   )}
                 </div>
+                <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                  <div className="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Total Compliance Score
+                      </p>
+                      <p className="mt-1 text-3xl font-black tracking-tight">
+                        {simulatedScore}%
+                      </p>
+                    </div>
+                    <div className="text-right text-sm text-muted-foreground">
+                      <span className="font-bold text-foreground">{currentScore}%</span> nuläge
+                      {simulatedScore > currentScore && (
+                        <span className="ml-2 rounded-full bg-success/15 px-2 py-1 text-xs font-bold text-success-foreground">
+                          +{simulatedScore - currentScore} förbättring
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+                    <motion.div
+                      className="h-full bg-[image:var(--gradient-hero)]"
+                      animate={{ width: `${simulatedScore}%` }}
+                      transition={{ duration: 0.45 }}
+                    />
+                  </div>
+                </div>
               </div>
             </motion.section>
 
@@ -239,7 +279,16 @@ function ResultsPage() {
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {items.map((it, i) => (
-                  <RiskCard key={it.user.id} item={it} index={i} />
+                  <RiskCard
+                    key={it.user.id}
+                    item={it}
+                    index={i}
+                    profile={profile}
+                    replacement={replacements[it.user.id]}
+                    onReplace={(name) =>
+                      setReplacements((current) => ({ ...current, [it.user.id]: name }))
+                    }
+                  />
                 ))}
               </div>
             </motion.section>
