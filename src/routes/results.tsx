@@ -528,9 +528,25 @@ function Donut({
   );
 }
 
-function RiskCard({ item, index }: { item: Resolved; index: number }) {
+function RiskCard({
+  item,
+  index,
+  profile,
+  replacement,
+  onReplace,
+}: {
+  item: Resolved;
+  index: number;
+  profile: QuizProfile;
+  replacement?: string;
+  onReplace: (name: string) => void;
+}) {
   const [open, setOpen] = useState(false);
   const risk = riskFor(item);
+  const match = item.region === "non-EU" ? bestMatchFor(item, profile) : undefined;
+  const currentScores = scoresFor(item);
+  const recommendedScores = match?.scores;
+  const shownScores = replacement ? scoresFor(item, replacement) : currentScores;
   const map = {
     low: {
       icon: CheckCircle2,
@@ -594,8 +610,41 @@ function RiskCard({ item, index }: { item: Resolved; index: number }) {
       </div>
       {open && (
         <div className="rounded-2xl border border-border bg-background/70 p-4 text-sm text-muted-foreground">
-          <p className="font-semibold text-foreground">EU-alternativ</p>
-          <p className="mt-1">{alternativesFor(item.user.name, item.catalog?.category).join(" · ")}</p>
+          {match ? (
+            <div>
+              <p className="font-semibold text-foreground">Bästa EU-matchning</p>
+              <div className="mt-2 rounded-xl border border-primary/20 bg-primary/5 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="font-bold text-foreground">{match.name}</p>
+                    <p className="text-xs">Matchad mot era quiz-svar: Säkerhet, NIS2/DORA och digital suveränitet.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onReplace(match.name);
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl bg-[image:var(--gradient-hero)] px-3 py-2 text-xs font-bold text-primary-foreground"
+                  >
+                    <RefreshCcw className="h-3.5 w-3.5" />
+                    Ersätt med EU-alternativ
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="font-semibold text-foreground">EU-status</p>
+              <p className="mt-1">Leverantören är redan EU-baserad eller behöver kompletteras med land/typ.</p>
+            </>
+          )}
+          <div className="mt-4 grid gap-2">
+            <ScoreRow label="NIS2-ready" value={shownScores.nis2} improved={recommendedScores?.nis2} />
+            <ScoreRow label="DORA-compliant" value={shownScores.dora} improved={recommendedScores?.dora} />
+            <ScoreRow label="Digital Suveränitet" value={shownScores.sovereignty} improved={recommendedScores?.sovereignty} />
+            <ScoreRow label="GDPR-assurance" value={shownScores.gdpr} improved={recommendedScores?.gdpr} />
+          </div>
           {item.user.mustKeep && (
             <p className="mt-3">
               Behåll tills vidare: säkra DPA/SCC, minimera persondata, kräv EU-datalagring,
@@ -605,6 +654,23 @@ function RiskCard({ item, index }: { item: Resolved; index: number }) {
         </div>
       )}
     </motion.button>
+  );
+}
+
+function ScoreRow({ label, value, improved }: { label: string; value: number; improved?: number }) {
+  const target = improved && improved > value ? improved : value;
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between gap-3 text-xs font-bold">
+        <span className="text-foreground">{label}</span>
+        <span>
+          {value}%{improved && improved > value ? ` → ${improved}%` : ""}
+        </span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <div className="h-full rounded-full bg-[image:var(--gradient-hero)]" style={{ width: `${target}%` }} />
+      </div>
+    </div>
   );
 }
 
