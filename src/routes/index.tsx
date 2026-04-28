@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, BarChart3, Globe2, Lock, Newspaper, Pulse } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, Globe2, Lock, Newspaper } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -97,7 +97,7 @@ function Index() {
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-primary shadow-[var(--shadow-glow)]">
-              <Pulse className="h-5 w-5 text-primary-foreground" />
+              <Activity className="h-5 w-5 text-primary-foreground" />
               <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-home-background bg-home-signal" />
             </div>
             <div>
