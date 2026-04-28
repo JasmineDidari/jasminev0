@@ -48,7 +48,15 @@ const steps = [
 ];
 
 function CertificationJourneyPage() {
-  const { suppliers, quizAnswers } = useAppState();
+  const { suppliers, strategicQuiz } = useAppState();
+  const completedQuizFields = [
+    strategicQuiz.industry,
+    strategicQuiz.dataTypes.length > 0,
+    strategicQuiz.euStorageImportance,
+    strategicQuiz.exitReadiness,
+    strategicQuiz.nis2Strictness,
+    strategicQuiz.mainDriver,
+  ].filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-[image:var(--gradient-sky)]">
@@ -92,7 +100,7 @@ function CertificationJourneyPage() {
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Metric label="Suppliers" value={suppliers.length} />
-              <Metric label="Quiz-svar" value={quizAnswers.length} />
+              <Metric label="Quiz-svar" value={completedQuizFields} />
             </div>
           </div>
         </motion.section>

@@ -116,7 +116,7 @@ function SuppliersPage() {
       <main className="container mx-auto max-w-4xl px-6 py-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <span className="inline-block rounded-full bg-secondary px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-secondary-foreground">
-            Steg 2 av 3 · Leverantörer
+            Page 3 · The Inventory
           </span>
           <h1 className="mt-4 text-balance text-4xl font-black tracking-tight md:text-5xl">
             Lägg till era{" "}
@@ -125,8 +125,7 @@ function SuppliersPage() {
             </span>
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Registrera de leverantörer ni använder idag. Markera vilka ni måste
-            behålla även om de är icke-EU, så rekommenderar vi riskreducering.
+            Lägg till, ta bort och klassificera IT-suppliers. Öppna avancerade inställningar för kritikalitet och legacy-system.
           </p>
         </motion.div>
 
@@ -178,7 +177,7 @@ function SuppliersPage() {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Leverantörsnamn">
+                  <Field label="Name">
                     <input
                       value={row.name}
                       onChange={(e) => update(row.id, "name", e.target.value)}
@@ -186,7 +185,7 @@ function SuppliersPage() {
                       className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
                     />
                   </Field>
-                  <Field label="Typ">
+                  <Field label="Type">
                     <select
                       value={row.type}
                       onChange={(e) =>
@@ -201,7 +200,7 @@ function SuppliersPage() {
                       ))}
                     </select>
                   </Field>
-                  <Field label="Land">
+                  <Field label="Country">
                     <input
                       value={row.country}
                       onChange={(e) => update(row.id, "country", e.target.value)}
@@ -217,32 +216,37 @@ function SuppliersPage() {
                       className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
                     />
                   </Field>
-                  <Field label="Kritikalitet (1–5)">
+                </div>
+
+                <details className="mt-5 rounded-2xl border border-border bg-background/70 p-4">
+                  <summary className="cursor-pointer text-sm font-bold text-foreground">
+                    Advanced Settings
+                  </summary>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <Field label="Criticality Scale (0–5)">
                     <select
                       value={row.criticality ?? 3}
                       onChange={(e) => update(row.id, "criticality", Number(e.target.value))}
                       className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
                     >
-                      {[1, 2, 3, 4, 5].map((level) => (
+                      {[0, 1, 2, 3, 4, 5].map((level) => (
                         <option key={level} value={level}>
-                          {level} {level >= 4 ? "— affärskritiskt" : level === 3 ? "— viktigt" : "— lägre påverkan"}
+                          {level} {level >= 4 ? "— vital to operations" : level === 3 ? "— important" : "— lower impact"}
                         </option>
                       ))}
                     </select>
                   </Field>
-                </div>
-                <label className="mt-5 flex items-start gap-3 rounded-2xl border border-border bg-background/70 p-4 text-sm font-medium">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(row.mustKeep)}
-                    onChange={(e) => update(row.id, "mustKeep", e.target.checked)}
-                    className="mt-1 h-4 w-4 accent-primary"
-                  />
-                  <span>
-                    Den här leverantören måste vi behålla just nu, även om den
-                    bedöms som icke-EU eller hög risk.
-                  </span>
-                </label>
+                    <label className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-sm font-medium">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(row.mustKeep)}
+                        onChange={(e) => update(row.id, "mustKeep", e.target.checked)}
+                        className="mt-1 h-4 w-4 accent-primary"
+                      />
+                      <span>“Måste behållas” — legacy-system som inte kan ersättas direkt.</span>
+                    </label>
+                  </div>
+                </details>
               </motion.div>
             ))}
           </AnimatePresence>
