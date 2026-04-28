@@ -440,10 +440,10 @@ function ResultsPage() {
                 AI-insikt
               </div>
               <h2 className="text-2xl font-black tracking-tight md:text-3xl">
-                Sammanfattning av er exponering
+                Utökad AI-insikt och åtgärdslista
               </h2>
               <div className="mt-3 space-y-3 text-base text-muted-foreground md:text-lg">
-                {buildInsight(stats).map((line) => <p key={line}>{line}</p>)}
+                {buildInsight(stats, simulatedScore, blockers).map((line) => <p key={line}>{line}</p>)}
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
@@ -773,15 +773,25 @@ function buildInsight(stats: {
   high: number;
   nonEuPct: number;
   euPct: number;
-}): string[] {
+}, score: number, blockers: Resolved[]): string[] {
   if (stats.total === 0) return ["Inga leverantörer att analysera ännu."];
   const parts: string[] = [];
   parts.push(
-    `${stats.nonEuPct}% av era ${stats.total} leverantörer är baserade utanför EU.`,
+    `Er Value Engine-score är ${score}%. ${stats.euPct}% av era ${stats.total} leverantörer är EU-baserade och ${stats.nonEuPct}% är icke-EU.`,
   );
+  if (score < 80) {
+    parts.push(
+      "Ni ligger under 80%-tröskeln för certifiering. Åtgärda kritiska icke-EU-beroenden, komplettera avtal och säkerställ data residency innan certifiering är möjlig.",
+    );
+  }
   if (stats.high > 0) {
     parts.push(
       `${stats.high} av dem klassas som högrisk — ofta på grund av exponering mot CLOUD Act eller liknande utomeuropeisk lagstiftning.`,
+    );
+  }
+  if (blockers.length > 0) {
+    parts.push(
+      `Blockers: ${blockers.map((item) => `${item.user.name} (${item.user.criticality ?? 3}/5)`).join(", ")} är kritiska icke-EU-leverantörer och bör prioriteras först.`,
     );
   }
   if (stats.unknown > 0) {
@@ -803,7 +813,7 @@ function buildInsight(stats: {
     );
   }
   parts.push(
-    "Compliance-viktning: DORA ges högst prioritet för kritiska system, följt av NIS2, GDPR, digital suveränitet, Data Act och EU-certifiering som bevis på kontroller.",
+    "Compliance-viktning: DORA och NIS2 väger tyngst för kritiska system, därefter GDPR-assurance, Data Act-beredskap och digital suveränitet. Rekommendationerna prioriterar EU-leverantörer som minskar regulatorisk exponering utan att tappa operativ kontroll.",
   );
   return parts;
 }
