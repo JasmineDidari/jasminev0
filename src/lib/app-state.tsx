@@ -27,6 +27,7 @@ type AppStateContextValue = {
   quizProfile: QuizProfile;
   setSuppliers: (suppliers: UserSupplier[]) => void;
   setStrategicQuiz: (quiz: StrategicQuizState) => void;
+  resetStrategicQuiz: () => void;
 };
 
 const defaultStrategicQuiz: StrategicQuizState = {
@@ -97,6 +98,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         setStrategicQuizState(next);
         if (typeof window !== "undefined") {
           window.localStorage.setItem("eurostack_strategic_quiz", JSON.stringify(next));
+        }
+      },
+      resetStrategicQuiz: () => {
+        setStrategicQuizState(defaultStrategicQuiz);
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem("eurostack_strategic_quiz");
+          window.localStorage.removeItem("eurostack_quiz_answers");
         }
       },
     };
