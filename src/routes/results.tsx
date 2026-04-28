@@ -406,6 +406,8 @@ function ResultsPage() {
               </div>
             </motion.section>
 
+            <SupplierRecommendationList items={items} profile={profile} />
+
             {/* AI Insight */}
             <motion.section
               id="eu-alternativ"
