@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   loadUserSuppliers,
   saveUserSuppliers,
@@ -27,6 +27,7 @@ type AppStateContextValue = {
   quizProfile: QuizProfile;
   setSuppliers: (suppliers: UserSupplier[]) => void;
   setStrategicQuiz: (quiz: StrategicQuizState) => void;
+  resetStrategicQuiz: () => void;
 };
 
 const defaultStrategicQuiz: StrategicQuizState = {
@@ -79,6 +80,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [suppliers, setSuppliersState] = useState<UserSupplier[]>([]);
   const [strategicQuiz, setStrategicQuizState] = useState<StrategicQuizState>(defaultStrategicQuiz);
 
+  const resetStrategicQuiz = useCallback(() => {
+    setStrategicQuizState(defaultStrategicQuiz);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("eurostack_strategic_quiz");
+      window.localStorage.removeItem("eurostack_quiz_answers");
+    }
+  }, []);
+
   useEffect(() => {
     setSuppliersState(loadUserSuppliers());
     setStrategicQuizState(loadStrategicQuiz());
@@ -99,8 +108,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           window.localStorage.setItem("eurostack_strategic_quiz", JSON.stringify(next));
         }
       },
+      resetStrategicQuiz,
     };
-  }, [strategicQuiz, suppliers]);
+  }, [resetStrategicQuiz, strategicQuiz, suppliers]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }

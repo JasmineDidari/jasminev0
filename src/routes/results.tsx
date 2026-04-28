@@ -406,6 +406,8 @@ function ResultsPage() {
               </div>
             </motion.section>
 
+            <SupplierRecommendationList items={items} profile={profile} />
+
             {/* AI Insight */}
             <motion.section
               id="eu-alternativ"
@@ -709,6 +711,59 @@ function RiskCard({
         </div>
       )}
     </motion.button>
+  );
+}
+
+function SupplierRecommendationList({ items, profile }: { items: Resolved[]; profile: QuizProfile }) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.25 }}
+      className="mt-8 rounded-3xl border border-border bg-card p-8 shadow-[var(--shadow-soft)]"
+    >
+      <div className="mb-5 flex items-center gap-2">
+        <ClipboardList className="h-4 w-4 text-primary" />
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Leverantörslista · datalagring och bästa matchning
+        </h2>
+      </div>
+      <div className="grid gap-3">
+        {items.map((item) => {
+          const match = item.region === "non-EU" ? bestMatchFor(item, profile) : undefined;
+          const currentScore = weightedCompliance(scoresFor(item), profile);
+          const matchScore = match ? weightedCompliance(match.scores, profile) : currentScore;
+          return (
+            <article key={item.user.id} className="rounded-2xl border border-border bg-background/70 p-5">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-black tracking-tight">{item.user.name}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Data lagras: <span className="font-semibold text-foreground">{item.location}</span>
+                  </p>
+                </div>
+                <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-wider text-secondary-foreground">
+                  {item.region}
+                </span>
+              </div>
+              <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Bäst lämpad tech supplier baserat på quiz-svar
+                </p>
+                <p className="mt-1 font-bold text-foreground">
+                  {match ? `${match.name} (${matchScore}%)` : `${item.user.name} (${currentScore}%)`}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {match
+                    ? "Rekommenderas för högre EU-suveränitet, GDPR-position och NIS2/DORA-beredskap."
+                    : "Nuvarande leverantör är redan EU-baserad eller saknar komplett data för en ersättningsmatchning."}
+                </p>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </motion.section>
   );
 }
 

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Database, HelpCircle, Layers3, ShieldCheck } from "lucide-react";
 import {
@@ -38,9 +38,14 @@ const driverOptions: MainDriver[] = ["Compliance", "Security", "Cost", "Sovereig
 
 function QuizPage() {
   const navigate = useNavigate();
-  const { strategicQuiz, setStrategicQuiz } = useAppState();
+  const { strategicQuiz, setStrategicQuiz, resetStrategicQuiz } = useAppState();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<StrategicQuizState>({ ...strategicQuiz, dataTypes: strategicQuiz.dataTypes ?? [] });
+
+  useEffect(() => {
+    resetStrategicQuiz();
+    setDraft({ dataTypes: [] });
+  }, [resetStrategicQuiz]);
 
   const total = 6;
   const progress = ((step + 1) / total) * 100;
@@ -57,7 +62,7 @@ function QuizPage() {
       return;
     }
     setStrategicQuiz(draft);
-    navigate({ to: "/suppliers" });
+    navigate({ to: "/results" });
   }
 
   return (
@@ -190,7 +195,7 @@ function QuizPage() {
                 disabled={!canContinue}
                 className="inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-6 py-3 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {step + 1 === total ? "Fortsätt till registry" : "Nästa"}
+                {step + 1 === total ? "Se resultat" : "Nästa"}
                 <ArrowRight className="h-5 w-5" />
               </button>
             </div>

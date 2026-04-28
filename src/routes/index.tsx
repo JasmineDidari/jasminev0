@@ -149,7 +149,7 @@ function Index() {
               to="/quiz"
               className="group inline-flex items-center gap-3 rounded-lg bg-primary px-8 py-4 text-base font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
             >
-              Starta mätning
+              Starta quiz
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
