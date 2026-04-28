@@ -92,7 +92,7 @@ function Index() {
   return (
     <div className="min-h-screen bg-home-background text-home-foreground">
       <div className="absolute inset-0 -z-0 bg-[image:var(--grid-home)] bg-[length:64px_64px]" />
-      <div className="relative z-10">
+      <main className="relative z-10">
       <header className="border-b border-home-border/60">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
@@ -241,7 +241,7 @@ function Index() {
       <footer className="border-t border-home-border py-8 text-center text-sm text-home-muted">
         © {new Date().getFullYear()} EUROstack — Digital suveränitet på riktigt.
       </footer>
-      </div>
+      </main>
     </div>
   );
 }
