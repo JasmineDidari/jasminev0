@@ -10,18 +10,14 @@ export type SupplierInfo = {
 export type SupplierType =
   | "SaaS"
   | "Cloud"
-  | "Konsult"
-  | "Infrastruktur"
-  | "AI"
-  | "Annat";
+  | "Infra"
+  | "Consultant";
 
 export const SUPPLIER_TYPES: SupplierType[] = [
   "SaaS",
   "Cloud",
-  "Konsult",
-  "Infrastruktur",
-  "AI",
-  "Annat",
+  "Infra",
+  "Consultant",
 ];
 
 export type UserSupplier = {
