@@ -40,7 +40,7 @@ function QuizPage() {
   const navigate = useNavigate();
   const { strategicQuiz, setStrategicQuiz } = useAppState();
   const [step, setStep] = useState(0);
-  const [draft, setDraft] = useState<StrategicQuizState>({ dataTypes: [], ...strategicQuiz });
+  const [draft, setDraft] = useState<StrategicQuizState>({ ...strategicQuiz, dataTypes: strategicQuiz.dataTypes ?? [] });
 
   const total = 6;
   const progress = ((step + 1) / total) * 100;
