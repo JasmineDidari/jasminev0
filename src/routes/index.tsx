@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, Newspaper, ShieldCheck, Sparkles, Globe2, BarChart3, Lock } from "lucide-react";
+import { ArrowRight, BarChart3, Globe2, Lock, Newspaper, Pulse, Shield, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -52,92 +52,116 @@ const blogs = [
 const features = [
   {
     icon: Globe2,
-    title: "Geografisk översikt",
-    text: "Se exakt var er data faktiskt lagras — region för region.",
+    kicker: "EU-suveränitet",
+    title: "20+ leverantörer",
+    text: "Cloud, AI, fintech",
   },
   {
     icon: BarChart3,
-    title: "EU vs icke-EU",
-    text: "Visuell fördelning av er stack på 30 sekunder.",
+    kicker: "Regelverk",
+    title: "GDPR · NIS2 · DORA",
+    text: "Vägt per sektor",
   },
   {
     icon: Lock,
-    title: "Compliance-redo",
-    text: "GDPR, NIS2 och CLOUD Act — riskbedömt per leverantör.",
+    kicker: "Jurisdiktion",
+    title: "EU vs. icke-EU",
+    text: "CLOUD Act-analys",
+  },
+];
+
+const processSteps = [
+  {
+    step: "STEG 01",
+    title: "Svara på 6 frågor",
+    text: "Bransch, datatyper, EU-lagring, exit-strategi och NIS2-nivå avgör hur riskerna viktas.",
+  },
+  {
+    step: "STEG 02",
+    title: "Registrera suppliers",
+    text: "Lägg till SaaS, Cloud, Infra och konsulter med land, kritikalitet och måste-behållas-status.",
+  },
+  {
+    step: "STEG 03",
+    title: "Få EU-alternativ",
+    text: "Dashboarden visar compliance score, blockers och bästa EU-matchning för varje icke-EU-leverantör.",
   },
 ];
 
 function Index() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="container mx-auto flex items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[image:var(--gradient-hero)] shadow-[var(--shadow-glow)]">
-            <ShieldCheck className="h-5 w-5 text-primary-foreground" />
+    <div className="min-h-screen bg-home-background text-home-foreground">
+      <div className="absolute inset-0 -z-0 bg-[image:var(--grid-home)] bg-[length:64px_64px]" />
+      <div className="relative z-10">
+      <header className="border-b border-home-border/60">
+        <div className="container mx-auto flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-primary shadow-[var(--shadow-glow)]">
+              <Pulse className="h-5 w-5 text-primary-foreground" />
+              <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-home-background bg-home-signal" />
+            </div>
+            <div>
+              <div className="text-sm font-black tracking-tight">EuroStack Meter</div>
+              <div className="text-[10px] font-medium uppercase tracking-[0.35em] text-home-muted">Vendor Sovereignty Index</div>
+            </div>
           </div>
-          <span className="text-lg font-bold tracking-tight">EUROstack</span>
+          <nav className="hidden gap-8 text-sm font-medium text-home-muted md:flex">
+            <Link to="/how-it-works" className="hover:text-home-foreground">Så fungerar det</Link>
+            <Link to="/results" className="hover:text-home-foreground">Ranking</Link>
+            <Link to="/certification-journey" className="hover:text-home-foreground">Om</Link>
+          </nav>
+          <div className="hidden items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-home-muted md:flex">
+            v1.0 <span className="text-home-signal">· Live</span>
+          </div>
         </div>
-        <nav className="hidden gap-8 text-sm font-medium text-muted-foreground md:flex">
-          <a href="#nyheter" className="hover:text-foreground">Nyheter</a>
-          <Link to="/how-it-works" className="hover:text-foreground">Så fungerar det</Link>
-          <Link to="/certification-journey" className="hover:text-foreground">Certifiering</Link>
-        </nav>
       </header>
 
-      {/* Hero with quiz CTA */}
       <section
         id="quiz"
-        className="container mx-auto px-6 pb-16 pt-10 md:pb-24 md:pt-16"
+        className="container mx-auto px-6 pb-20 pt-28 md:pb-28 md:pt-36"
       >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mx-auto max-w-3xl text-center"
+          className="mx-auto max-w-4xl text-center"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground shadow-sm">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            EUROstack Verified
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-tight text-primary-glow shadow-sm">
+            <span className="h-2 w-2 rounded-full bg-primary" />
+            EU Digital Sovereignty · NIS2 · GDPR · DORA
           </span>
-          <h1 className="mt-6 text-balance text-5xl font-black tracking-tight md:text-7xl">
-            Förstå var er{" "}
-            <span className="bg-[image:var(--gradient-hero)] bg-clip-text text-transparent">
-              data faktiskt flödar
+          <h1 className="mt-7 text-balance text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
+            Mät dina leverantörer mot{" "}
+            <span className="bg-[image:var(--gradient-euro)] bg-clip-text text-transparent">
+              EuroStack
             </span>
           </h1>
-          <p className="mt-6 text-balance text-lg text-muted-foreground md:text-xl">
-            EUROstack hjälper er kartlägga exponering mot EU- och icke-EU
-            leverantörer — och visualiserar hur er tekniska data rör sig mellan
-            regioner.
+          <p className="mx-auto mt-7 max-w-2xl text-balance text-lg leading-8 text-home-muted md:text-xl">
+            Bredbandskollen — fast för leverantörer. Få på 60 sekunder en kompatibilitetspoäng som visar hur väl era leverantörer följer EU-suveränitet, GDPR, NIS2 och DORA.
           </p>
 
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="mt-10"
+            className="mt-11 flex flex-col items-center justify-center gap-4 sm:flex-row"
           >
             <Link
               to="/quiz"
-              className="group inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-8 py-5 text-lg font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
+              className="group inline-flex items-center gap-3 rounded-lg bg-primary px-8 py-4 text-base font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
             >
-              Starta strategiskt quiz
+              Starta mätning
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               to="/how-it-works"
-              className="ml-3 inline-flex items-center gap-2 rounded-2xl border-2 border-border bg-card px-6 py-5 text-lg font-bold shadow-sm transition-all hover:border-primary hover:bg-primary/5"
+              className="inline-flex items-center gap-2 px-2 py-4 text-sm font-semibold text-home-muted transition-colors hover:text-home-foreground"
             >
-              Så fungerar det
+              Så fungerar det →
             </Link>
           </motion.div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Gratis · Ingen registrering · Tar 2 minuter
-          </p>
         </motion.div>
 
-        {/* Feature strip */}
-        <div className="mx-auto mt-16 grid max-w-5xl gap-4 md:grid-cols-3">
+        <div className="mx-auto mt-20 grid max-w-5xl overflow-hidden rounded-2xl border border-home-border bg-home-surface/80 md:grid-cols-3">
           {features.map((f, i) => (
             <motion.div
               key={f.title}
@@ -145,19 +169,33 @@ function Index() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.08 }}
-              className="rounded-2xl border border-border bg-card p-6 shadow-sm"
+              className="border-home-border p-6 md:border-r md:last:border-r-0"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary">
-                <f.icon className="h-5 w-5 text-primary" />
-              </div>
-              <h3 className="mt-4 text-base font-bold tracking-tight">{f.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{f.text}</p>
+              <f.icon className="h-5 w-5 text-home-signal" />
+              <p className="mt-5 text-xs font-medium uppercase tracking-[0.24em] text-home-muted">{f.kicker}</p>
+              <h3 className="mt-2 text-lg font-black tracking-tight">{f.title}</h3>
+              <p className="mt-1 text-sm text-home-muted">{f.text}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Blog cards */}
+      <section id="how" className="border-y border-home-border bg-home-background/80 px-6 py-20">
+        <div className="container mx-auto max-w-5xl text-center">
+          <p className="text-xs font-black uppercase tracking-[0.5em] text-home-signal">Process</p>
+          <h2 className="mt-5 text-4xl font-black tracking-tight md:text-6xl">Så fungerar mätaren</h2>
+          <div className="mt-12 grid gap-4 text-left md:grid-cols-3">
+            {processSteps.map((item) => (
+              <article key={item.step} className="rounded-2xl border border-home-border bg-home-surface p-6">
+                <p className="text-xs font-bold uppercase tracking-[0.25em] text-home-signal">{item.step}</p>
+                <h3 className="mt-5 text-xl font-black tracking-tight">{item.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-home-muted">{item.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="nyheter" className="container mx-auto px-6 pb-24">
         <div className="mb-10 flex items-end justify-between">
           <div>
