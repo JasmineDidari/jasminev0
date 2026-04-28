@@ -119,10 +119,14 @@ function scoresFor(item: Resolved, replacement?: string): ComplianceScores {
   return { nis2: 50, dora: 46, sovereignty: 40, gdpr: 55 };
 }
 
-function overallCompliance(items: Resolved[], replacements: Record<string, string>) {
+function overallCompliance(
+  items: Resolved[],
+  replacements: Record<string, string>,
+  profile = defaultProfile,
+) {
   if (!items.length) return 0;
   const total = items.reduce(
-    (acc, item) => acc + weightedCompliance(scoresFor(item, replacements[item.user.id])),
+    (acc, item) => acc + weightedCompliance(scoresFor(item, replacements[item.user.id]), profile),
     0,
   );
   return Math.round(total / items.length);
@@ -157,10 +161,10 @@ function ResultsPage() {
     return { eu, nonEu, unknown, total, high, nonEuPct, euPct };
   }, [items]);
 
-  const currentScore = useMemo(() => overallCompliance(items, {}), [items]);
+  const currentScore = useMemo(() => overallCompliance(items, {}, profile), [items, profile]);
   const simulatedScore = useMemo(
-    () => overallCompliance(items, replacements),
-    [items, replacements],
+    () => overallCompliance(items, replacements, profile),
+    [items, replacements, profile],
   );
 
   return (
