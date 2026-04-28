@@ -127,7 +127,7 @@ function bestMatchFor(item: Resolved, profile: QuizProfile) {
 
 function criticalBlockers(items: Resolved[]) {
   return items.filter(
-    (item) => item.region === "non-EU" && (item.user.criticality ?? 3) >= 4,
+    (item) => item.region === "non-EU" && (item.user.criticality ?? 3) >= 4 && !item.user.mustKeep,
   );
 }
 
@@ -461,6 +461,7 @@ function ResultsPage() {
 }
 
 function riskFor(it: Resolved): "low" | "medium" | "high" {
+  if (it.region === "non-EU" && it.user.mustKeep) return "medium";
   if (it.catalog) return it.catalog.risk;
   if (it.region === "EU") return "low";
   if (it.region === "non-EU") return "high";
