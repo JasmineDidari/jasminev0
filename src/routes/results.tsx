@@ -12,6 +12,8 @@ import {
   Compass,
   ChevronDown,
   RefreshCcw,
+  ClipboardList,
+  CalendarCheck,
 } from "lucide-react";
 import {
   COMPLIANCE_SCOREBOOK,
@@ -140,6 +142,12 @@ function bestMatchFor(item: Resolved, profile: QuizProfile) {
     .sort((a, b) => weightedCompliance(b.scores, profile) - weightedCompliance(a.scores, profile))[0];
 }
 
+function criticalBlockers(items: Resolved[]) {
+  return items.filter(
+    (item) => item.region === "non-EU" && (item.user.criticality ?? 3) >= 4,
+  );
+}
+
 function ResultsPage() {
   const [items, setItems] = useState<Resolved[]>([]);
   const [replacements, setReplacements] = useState<Record<string, string>>({});
@@ -166,6 +174,7 @@ function ResultsPage() {
     () => overallCompliance(items, replacements, profile),
     [items, replacements, profile],
   );
+  const blockers = useMemo(() => criticalBlockers(items), [items]);
 
   return (
     <div className="min-h-screen bg-[image:var(--gradient-sky)]">
@@ -190,9 +199,9 @@ function ResultsPage() {
             Steg 3 av 3 · Resultat
           </span>
           <h1 className="mt-4 text-balance text-4xl font-black tracking-tight md:text-5xl">
-            Er digitala{" "}
+            Analysis Dashboard{" "}
             <span className="bg-[image:var(--gradient-hero)] bg-clip-text text-transparent">
-              leverantörskarta
+              Value Engine
             </span>
           </h1>
         </motion.div>
@@ -283,6 +292,61 @@ function ResultsPage() {
                 </div>
               </div>
             </motion.section>
+
+            {simulatedScore < 80 && (
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12 }}
+                className="mt-8 rounded-3xl border-2 border-warning/50 bg-warning/15 p-8 shadow-[var(--shadow-soft)]"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-5">
+                  <div className="max-w-2xl">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-background/70 px-3 py-1 text-xs font-bold uppercase tracking-wider text-warning-foreground">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      Under 80% tröskel
+                    </div>
+                    <h2 className="mt-4 text-2xl font-black tracking-tight md:text-3xl">
+                      Det finns punkter att åtgärda innan certifiering är möjlig
+                    </h2>
+                    <p className="mt-3 text-muted-foreground">
+                      Value Engine viktar DORA, NIS2, GDPR och Data Act extra tungt. Kritiska icke-EU-leverantörer behöver åtgärdas, ersättas eller dokumenteras innan EUROstack-certifiering.
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-background/70 px-5 py-4 text-center">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Certifieringsscore
+                    </p>
+                    <p className="text-4xl font-black">{simulatedScore}%</p>
+                  </div>
+                </div>
+
+                <div className="mt-6 rounded-2xl border border-warning/40 bg-background/70 p-5">
+                  <p className="font-bold tracking-tight">Blockers: kritiska icke-EU-leverantörer</p>
+                  {blockers.length > 0 ? (
+                    <div className="mt-3 grid gap-2">
+                      {blockers.map((item) => (
+                        <div key={item.user.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
+                          <div>
+                            <p className="font-bold">{item.user.name}</p>
+                            <p className="text-sm text-muted-foreground">{item.location}</p>
+                          </div>
+                          <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-bold text-destructive">
+                            Kritikalitet {item.user.criticality ?? 3}/5
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Inga icke-EU-leverantörer med kritikalitet 4–5 hittades. Fokus ligger på dokumentation, dataplats och avtal.
+                    </p>
+                  )}
+                </div>
+
+                <ActionButtons />
+              </motion.section>
+            )}
 
             {/* Geographic data flow */}
             <motion.section
