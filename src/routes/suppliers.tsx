@@ -3,14 +3,13 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Plus, Trash2, ArrowRight, Server, Sparkles } from "lucide-react";
 import {
-  loadUserSuppliers,
-  saveUserSuppliers,
   SUPPLIER_TYPES,
   POPULAR_SUPPLIERS,
   SUPPLIER_CATALOG,
   type UserSupplier,
   type SupplierType,
 } from "@/lib/suppliers";
+import { useAppState } from "@/lib/app-state";
 
 export const Route = createFileRoute("/suppliers")({
   head: () => ({
@@ -41,12 +40,12 @@ function emptyRow(): UserSupplier {
 
 function SuppliersPage() {
   const navigate = useNavigate();
+  const { suppliers, setSuppliers } = useAppState();
   const [rows, setRows] = useState<UserSupplier[]>([]);
 
   useEffect(() => {
-    const stored = loadUserSuppliers();
-    setRows(stored.length > 0 ? stored : [emptyRow()]);
-  }, []);
+    setRows(suppliers.length > 0 ? suppliers : [emptyRow()]);
+  }, [suppliers]);
 
   function update<K extends keyof UserSupplier>(
     id: string,
@@ -96,7 +95,7 @@ function SuppliersPage() {
   const canSubmit = valid.length > 0;
 
   function submit() {
-    saveUserSuppliers(valid);
+    setSuppliers(valid);
     navigate({ to: "/quiz" });
   }
 

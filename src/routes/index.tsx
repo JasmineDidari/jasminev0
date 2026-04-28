@@ -81,6 +81,7 @@ function Index() {
         <nav className="hidden gap-8 text-sm font-medium text-muted-foreground md:flex">
           <a href="#nyheter" className="hover:text-foreground">Nyheter</a>
           <Link to="/how-it-works" className="hover:text-foreground">Så fungerar det</Link>
+          <Link to="/certification-journey" className="hover:text-foreground">Certifiering</Link>
         </nav>
       </header>
 

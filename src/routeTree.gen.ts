@@ -13,6 +13,7 @@ import { Route as SuppliersRouteImport } from './routes/suppliers'
 import { Route as ResultsRouteImport } from './routes/results'
 import { Route as QuizRouteImport } from './routes/quiz'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as CertificationJourneyRouteImport } from './routes/certification-journey'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 
@@ -36,6 +37,11 @@ const HowItWorksRoute = HowItWorksRouteImport.update({
   path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CertificationJourneyRoute = CertificationJourneyRouteImport.update({
+  id: '/certification-journey',
+  path: '/certification-journey',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -49,6 +55,7 @@ const NewsSlugRoute = NewsSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/certification-journey': typeof CertificationJourneyRoute
   '/how-it-works': typeof HowItWorksRoute
   '/quiz': typeof QuizRoute
   '/results': typeof ResultsRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/certification-journey': typeof CertificationJourneyRoute
   '/how-it-works': typeof HowItWorksRoute
   '/quiz': typeof QuizRoute
   '/results': typeof ResultsRoute
@@ -66,6 +74,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/certification-journey': typeof CertificationJourneyRoute
   '/how-it-works': typeof HowItWorksRoute
   '/quiz': typeof QuizRoute
   '/results': typeof ResultsRoute
@@ -76,6 +85,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/certification-journey'
     | '/how-it-works'
     | '/quiz'
     | '/results'
@@ -84,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/certification-journey'
     | '/how-it-works'
     | '/quiz'
     | '/results'
@@ -92,6 +103,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/certification-journey'
     | '/how-it-works'
     | '/quiz'
     | '/results'
@@ -101,6 +113,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CertificationJourneyRoute: typeof CertificationJourneyRoute
   HowItWorksRoute: typeof HowItWorksRoute
   QuizRoute: typeof QuizRoute
   ResultsRoute: typeof ResultsRoute
@@ -138,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/certification-journey': {
+      id: '/certification-journey'
+      path: '/certification-journey'
+      fullPath: '/certification-journey'
+      preLoaderRoute: typeof CertificationJourneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -157,6 +177,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CertificationJourneyRoute: CertificationJourneyRoute,
   HowItWorksRoute: HowItWorksRoute,
   QuizRoute: QuizRoute,
   ResultsRoute: ResultsRoute,

@@ -14,10 +14,10 @@ import {
   RefreshCcw,
   ClipboardList,
   CalendarCheck,
+  BadgeCheck,
 } from "lucide-react";
 import {
   COMPLIANCE_SCOREBOOK,
-  loadUserSuppliers,
   resolveSupplier,
   locationFor,
   isEUCountry,
@@ -27,6 +27,7 @@ import {
   type UserSupplier,
   type SupplierInfo,
 } from "@/lib/suppliers";
+import { useAppState } from "@/lib/app-state";
 
 export const Route = createFileRoute("/results")({
   head: () => ({
@@ -80,24 +81,6 @@ const defaultProfile: QuizProfile = {
   cloudActAware: false,
 };
 
-function loadQuizProfile(): QuizProfile {
-  if (typeof window === "undefined") return defaultProfile;
-  try {
-    const answers = JSON.parse(
-      window.localStorage.getItem("eurostack_quiz_answers") ?? "[]",
-    ) as Array<"ja" | "nej" | "osaker">;
-    return {
-      securityPriority: answers[1] !== "nej" || answers[4] === "ja",
-      nis2Priority: answers[3] !== "ja" || answers[4] === "ja",
-      dataLocationKnown: answers[2] === "ja",
-      documentationReady: answers[3] === "ja",
-      cloudActAware: answers[4] === "ja",
-    };
-  } catch {
-    return defaultProfile;
-  }
-}
-
 function weightedCompliance(scores: ComplianceScores, profile = defaultProfile): number {
   const nis2Weight = profile.nis2Priority ? 0.34 : 0.26;
   const doraWeight = profile.securityPriority ? 0.31 : 0.25;
@@ -149,14 +132,10 @@ function criticalBlockers(items: Resolved[]) {
 }
 
 function ResultsPage() {
-  const [items, setItems] = useState<Resolved[]>([]);
+  const { suppliers, quizProfile } = useAppState();
   const [replacements, setReplacements] = useState<Record<string, string>>({});
-  const [profile, setProfile] = useState<QuizProfile>(defaultProfile);
-
-  useEffect(() => {
-    setItems(loadUserSuppliers().map(buildResolved));
-    setProfile(loadQuizProfile());
-  }, []);
+  const profile = quizProfile;
+  const items = useMemo(() => suppliers.map(buildResolved), [suppliers]);
 
   const stats = useMemo(() => {
     const eu = items.filter((i) => i.region === "EU").length;
@@ -453,6 +432,13 @@ function ResultsPage() {
                   <Download className="h-4 w-4" />
                   Exportera rapport
                 </button>
+                <Link
+                  to="/certification-journey"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-[image:var(--gradient-hero)] px-5 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
+                >
+                  <BadgeCheck className="h-4 w-4" />
+                  Starta certifieringsresa
+                </Link>
                 <button
                   onClick={() =>
                     alert("EU-alternativ-katalogen är på väg — vi mailar dig så snart den är live.")
