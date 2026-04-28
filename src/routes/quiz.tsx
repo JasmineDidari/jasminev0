@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, ShieldCheck, CheckCircle2, Check, X, HelpCircle } from "lucide-react";
+import { useAppState, type QuizAnswer } from "@/lib/app-state";
 
 export const Route = createFileRoute("/quiz")({
   head: () => ({
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/quiz")({
   component: QuizPage,
 });
 
-type Answer = "ja" | "nej" | "osaker";
+type Answer = QuizAnswer;
 type Q = { q: string };
 
 const QUESTIONS: Q[] = [
@@ -49,6 +50,7 @@ const OPTIONS: { value: Answer; label: string; icon: typeof Check }[] = [
 
 function QuizPage() {
   const navigate = useNavigate();
+  const { setQuizAnswers } = useAppState();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [done, setDone] = useState(false);
@@ -58,9 +60,7 @@ function QuizPage() {
 
   function answer(a: Answer) {
     const next = [...answers, a];
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("eurostack_quiz_answers", JSON.stringify(next));
-    }
+    setQuizAnswers(next);
     setAnswers(next);
     if (step + 1 < total) {
       setStep(step + 1);
