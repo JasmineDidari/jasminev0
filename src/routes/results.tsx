@@ -725,6 +725,29 @@ function RiskCard({
   );
 }
 
+function ActionButtons() {
+  return (
+    <div className="mt-6 flex flex-wrap gap-3">
+      <button
+        type="button"
+        onClick={() => alert("Partnerkonsult-flödet är redo att kopplas till bokning.")}
+        className="inline-flex items-center gap-2 rounded-2xl bg-[image:var(--gradient-hero)] px-5 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
+      >
+        <CalendarCheck className="h-4 w-4" />
+        Boka partnerkonsult för åtgärdsplan
+      </button>
+      <button
+        type="button"
+        onClick={() => document.getElementById("eu-alternativ")?.scrollIntoView({ behavior: "smooth" })}
+        className="inline-flex items-center gap-2 rounded-2xl border-2 border-border bg-background px-5 py-3 text-sm font-bold transition-all hover:border-primary hover:bg-primary/5"
+      >
+        <ClipboardList className="h-4 w-4" />
+        Se åtgärdslista (Gör det själv)
+      </button>
+    </div>
+  );
+}
+
 function ScoreRow({ label, value, improved }: { label: string; value: number; improved?: number }) {
   const target = improved && improved > value ? improved : value;
   return (
