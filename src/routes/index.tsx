@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, BarChart3, Globe2, Lock, Newspaper, Pulse, Shield, ShieldCheck } from "lucide-react";
+import { ArrowRight, BarChart3, Globe2, Lock, Newspaper, Pulse } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -238,9 +238,10 @@ function Index() {
         </div>
       </section>
 
-      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
+      <footer className="border-t border-home-border py-8 text-center text-sm text-home-muted">
         © {new Date().getFullYear()} EUROstack — Digital suveränitet på riktigt.
       </footer>
+      </div>
     </div>
   );
 }
