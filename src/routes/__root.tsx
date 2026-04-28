@@ -29,14 +29,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Mockup v 1" },
+      { name: "description", content: "Supplier Insights Hub analyzes your suppliers' EU compliance and associated risks." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Mockup v 1" },
+      { property: "og:description", content: "Supplier Insights Hub analyzes your suppliers' EU compliance and associated risks." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Mockup v 1" },
+      { name: "twitter:description", content: "Supplier Insights Hub analyzes your suppliers' EU compliance and associated risks." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/51cc82e9-5393-4a09-afdc-15cc46dcef56/id-preview-add487e5--56fd1e6c-c67d-4a31-b906-d7b759cb9fb3.lovable.app-1777292644664.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/51cc82e9-5393-4a09-afdc-15cc46dcef56/id-preview-add487e5--56fd1e6c-c67d-4a31-b906-d7b759cb9fb3.lovable.app-1777292644664.png" },
     ],
     links: [
       {
