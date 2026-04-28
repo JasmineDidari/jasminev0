@@ -118,10 +118,10 @@ function Index() {
             className="mt-10"
           >
             <Link
-              to="/suppliers"
+              to="/quiz"
               className="group inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-8 py-5 text-lg font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
             >
-              Registrera tech suppliers
+              Starta strategiskt quiz
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
