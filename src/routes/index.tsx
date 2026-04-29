@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Activity, ArrowRight, BarChart3, Globe2, Lock, Newspaper } from "lucide-react";
+import { useAppState } from "@/lib/app-state";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -87,6 +89,12 @@ const processSteps = [
 ];
 
 function Index() {
+  const { resetMeasurement } = useAppState();
+
+  useEffect(() => {
+    resetMeasurement();
+  }, [resetMeasurement]);
+
   return (
     <div className="min-h-screen bg-home-background text-home-foreground">
       <div className="absolute inset-0 -z-0 bg-[image:var(--grid-home)] bg-[length:64px_64px]" />
