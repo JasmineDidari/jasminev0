@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
+  clearUserSuppliers,
   loadUserSuppliers,
   saveUserSuppliers,
   type QuizProfile,
@@ -28,6 +29,7 @@ type AppStateContextValue = {
   setSuppliers: (suppliers: UserSupplier[]) => void;
   setStrategicQuiz: (quiz: StrategicQuizState) => void;
   resetStrategicQuiz: () => void;
+  resetMeasurement: () => void;
 };
 
 const defaultStrategicQuiz: StrategicQuizState = {
@@ -88,6 +90,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const resetMeasurement = useCallback(() => {
+    setSuppliersState([]);
+    clearUserSuppliers();
+    resetStrategicQuiz();
+  }, [resetStrategicQuiz]);
+
   useEffect(() => {
     setSuppliersState(loadUserSuppliers());
     setStrategicQuizState(loadStrategicQuiz());
@@ -109,8 +117,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         }
       },
       resetStrategicQuiz,
+      resetMeasurement,
     };
-  }, [resetStrategicQuiz, strategicQuiz, suppliers]);
+  }, [resetMeasurement, resetStrategicQuiz, strategicQuiz, suppliers]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }
