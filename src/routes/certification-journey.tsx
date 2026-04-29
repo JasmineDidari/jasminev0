@@ -18,8 +18,7 @@ export const Route = createFileRoute("/certification-journey")({
       { title: "Certification Journey — EUROstack" },
       {
         name: "description",
-        content:
-          "Roadmap från teknisk audit och legal vetting till EUROstack Badge.",
+        content: "Roadmap från teknisk audit och legal vetting till EUROstack Badge.",
       },
       { property: "og:title", content: "EUROstack Certification Journey" },
       {
@@ -86,7 +85,8 @@ function CertificationJourneyPage() {
               </span>
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-muted-foreground md:text-xl">
-              En tydlig roadmap från teknisk leverantörsanalys till juridisk granskning och verifierad compliance-status.
+              En tydlig roadmap från teknisk leverantörsanalys till juridisk granskning och
+              verifierad compliance-status.
             </p>
           </div>
 
