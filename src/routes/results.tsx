@@ -390,7 +390,7 @@ function ResultsPage() {
                   Visa EU-alternativ
                 </a>
               </div>
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-3">
                 {items.map((it, i) => (
                   <RiskCard
                     key={it.user.id}
@@ -637,7 +637,7 @@ function RiskCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 + index * 0.04 }}
-      className={`flex flex-col gap-3 rounded-2xl border-2 p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)] ${r.cls}`}
+      className={`w-full flex flex-col gap-3 rounded-2xl border-2 p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)] ${r.cls}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
