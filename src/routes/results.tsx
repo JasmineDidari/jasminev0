@@ -35,8 +35,7 @@ export const Route = createFileRoute("/results")({
       { title: "Riskanalys — EUROstack Verified" },
       {
         name: "description",
-        content:
-          "EU vs icke-EU fördelning, geografiska dataflöden och risk per leverantör.",
+        content: "EU vs icke-EU fördelning, geografiska dataflöden och risk per leverantör.",
       },
       { property: "og:title", content: "Din EUROstack-riskanalys" },
       {
@@ -121,8 +120,12 @@ function bestMatchFor(item: Resolved, profile: QuizProfile) {
   const names = alternativesFor(item.user.name, item.catalog?.category);
   return names
     .map((name) => ({ name, scores: COMPLIANCE_SCOREBOOK[name] }))
-    .filter((candidate): candidate is { name: string; scores: ComplianceScores } => Boolean(candidate.scores))
-    .sort((a, b) => weightedCompliance(b.scores, profile) - weightedCompliance(a.scores, profile))[0];
+    .filter((candidate): candidate is { name: string; scores: ComplianceScores } =>
+      Boolean(candidate.scores),
+    )
+    .sort(
+      (a, b) => weightedCompliance(b.scores, profile) - weightedCompliance(a.scores, profile),
+    )[0];
 }
 
 function criticalBlockers(items: Resolved[]) {
@@ -164,10 +167,7 @@ function ResultsPage() {
           </div>
           <span className="text-lg font-bold tracking-tight">EUROstack</span>
         </Link>
-        <Link
-          to="/suppliers"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
+        <Link to="/suppliers" className="text-sm text-muted-foreground hover:text-foreground">
           ← Redigera leverantörer
         </Link>
       </header>
@@ -187,9 +187,7 @@ function ResultsPage() {
 
         {items.length === 0 ? (
           <div className="mt-10 rounded-3xl border border-border bg-card p-10 text-center">
-            <p className="text-muted-foreground">
-              Inga leverantörer registrerade ännu.
-            </p>
+            <p className="text-muted-foreground">Inga leverantörer registrerade ännu.</p>
             <Link
               to="/suppliers"
               className="mt-4 inline-block rounded-2xl bg-primary px-6 py-3 font-bold text-primary-foreground"
@@ -234,11 +232,7 @@ function ResultsPage() {
                       color="bg-muted-foreground/40"
                       label="Okänd"
                       value={stats.unknown}
-                      pct={
-                        stats.total
-                          ? Math.round((stats.unknown / stats.total) * 100)
-                          : 0
-                      }
+                      pct={stats.total ? Math.round((stats.unknown / stats.total) * 100) : 0}
                     />
                   )}
                 </div>
@@ -248,9 +242,7 @@ function ResultsPage() {
                       <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                         Total Compliance Score
                       </p>
-                      <p className="mt-1 text-3xl font-black tracking-tight">
-                        {simulatedScore}%
-                      </p>
+                      <p className="mt-1 text-3xl font-black tracking-tight">{simulatedScore}%</p>
                     </div>
                     <div className="text-right text-sm text-muted-foreground">
                       <span className="font-bold text-foreground">{currentScore}%</span> nuläge
@@ -289,7 +281,9 @@ function ResultsPage() {
                       Det finns punkter att åtgärda innan certifiering är möjlig
                     </h2>
                     <p className="mt-3 text-muted-foreground">
-                      Value Engine viktar DORA, NIS2, GDPR och Data Act extra tungt. Kritiska icke-EU-leverantörer behöver åtgärdas, ersättas eller dokumenteras innan EUROstack-certifiering.
+                      Value Engine viktar DORA, NIS2, GDPR och Data Act extra tungt. Kritiska
+                      icke-EU-leverantörer behöver åtgärdas, ersättas eller dokumenteras innan
+                      EUROstack-certifiering.
                     </p>
                   </div>
                   <div className="rounded-2xl bg-background/70 px-5 py-4 text-center">
@@ -301,11 +295,16 @@ function ResultsPage() {
                 </div>
 
                 <div className="mt-6 rounded-2xl border border-warning/40 bg-background/70 p-5">
-                  <p className="font-bold tracking-tight">Blockers: kritiska icke-EU-leverantörer</p>
+                  <p className="font-bold tracking-tight">
+                    Blockers: kritiska icke-EU-leverantörer
+                  </p>
                   {blockers.length > 0 ? (
                     <div className="mt-3 grid gap-2">
                       {blockers.map((item) => (
-                        <div key={item.user.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
+                        <div
+                          key={item.user.id}
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3"
+                        >
                           <div>
                             <p className="font-bold">{item.user.name}</p>
                             <p className="text-sm text-muted-foreground">{item.location}</p>
@@ -318,7 +317,8 @@ function ResultsPage() {
                     </div>
                   ) : (
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Inga icke-EU-leverantörer med kritikalitet 4–5 hittades. Fokus ligger på dokumentation, dataplats och avtal.
+                      Inga icke-EU-leverantörer med kritikalitet 4–5 hittades. Fokus ligger på
+                      dokumentation, dataplats och avtal.
                     </p>
                   )}
                 </div>
@@ -386,7 +386,10 @@ function ResultsPage() {
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                   Klickbar riskanalys per leverantör
                 </h2>
-                <a href="#eu-alternativ" className="text-sm font-bold text-primary hover:text-foreground">
+                <a
+                  href="#eu-alternativ"
+                  className="text-sm font-bold text-primary hover:text-foreground"
+                >
                   Visa EU-alternativ
                 </a>
               </div>
@@ -424,7 +427,9 @@ function ResultsPage() {
                 Utökad AI-insikt och åtgärdslista
               </h2>
               <div className="mt-3 space-y-3 text-base text-muted-foreground md:text-lg">
-                {buildInsight(stats, simulatedScore, blockers).map((line) => <p key={line}>{line}</p>)}
+                {buildInsight(stats, simulatedScore, blockers).map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
@@ -472,8 +477,7 @@ function riskFor(it: Resolved): "low" | "medium" | "high" {
 
 function noteFor(it: Resolved): string {
   if (it.catalog) return it.catalog.riskNote;
-  if (it.region === "EU")
-    return "EU-baserad leverantör — inom GDPR-jurisdiktion.";
+  if (it.region === "EU") return "EU-baserad leverantör — inom GDPR-jurisdiktion.";
   if (it.region === "non-EU")
     return "Utanför EU — kan vara exponerad mot CLOUD Act eller liknande lagstiftning.";
   return "Land saknas — fyll i för att få en korrekt bedömning.";
@@ -653,12 +657,16 @@ function RiskCard({
           <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${r.iconCls}`}>
             <Icon className="h-5 w-5" />
           </div>
-          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+          <ChevronDown
+            className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+          />
         </div>
       </div>
       <p className="text-sm text-muted-foreground">{noteFor(item)}</p>
       <div className="flex items-center justify-between">
-        <span className={`inline-block rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${r.pillCls}`}>
+        <span
+          className={`inline-block rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${r.pillCls}`}
+        >
           {r.label}
         </span>
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -674,7 +682,9 @@ function RiskCard({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="font-bold text-foreground">{match.name}</p>
-                    <p className="text-xs">Matchad mot era quiz-svar: Säkerhet, NIS2/DORA och digital suveränitet.</p>
+                    <p className="text-xs">
+                      Matchad mot era quiz-svar: Säkerhet, NIS2/DORA och digital suveränitet.
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -693,19 +703,37 @@ function RiskCard({
           ) : (
             <>
               <p className="font-semibold text-foreground">EU-status</p>
-              <p className="mt-1">Leverantören är redan EU-baserad eller behöver kompletteras med land/typ.</p>
+              <p className="mt-1">
+                Leverantören är redan EU-baserad eller behöver kompletteras med land/typ.
+              </p>
             </>
           )}
           <div className="mt-4 grid gap-2">
-            <ScoreRow label="NIS2-ready" value={shownScores.nis2} improved={recommendedScores?.nis2} />
-            <ScoreRow label="DORA-compliant" value={shownScores.dora} improved={recommendedScores?.dora} />
-            <ScoreRow label="Digital Suveränitet" value={shownScores.sovereignty} improved={recommendedScores?.sovereignty} />
-            <ScoreRow label="GDPR-assurance" value={shownScores.gdpr} improved={recommendedScores?.gdpr} />
+            <ScoreRow
+              label="NIS2-ready"
+              value={shownScores.nis2}
+              improved={recommendedScores?.nis2}
+            />
+            <ScoreRow
+              label="DORA-compliant"
+              value={shownScores.dora}
+              improved={recommendedScores?.dora}
+            />
+            <ScoreRow
+              label="Digital Suveränitet"
+              value={shownScores.sovereignty}
+              improved={recommendedScores?.sovereignty}
+            />
+            <ScoreRow
+              label="GDPR-assurance"
+              value={shownScores.gdpr}
+              improved={recommendedScores?.gdpr}
+            />
           </div>
           {item.user.mustKeep && (
             <p className="mt-3">
-              Behåll tills vidare: säkra DPA/SCC, minimera persondata, kräv EU-datalagring,
-              sätt exit-plan och prioritera DORA/NIS2-dokumentation.
+              Behåll tills vidare: säkra DPA/SCC, minimera persondata, kräv EU-datalagring, sätt
+              exit-plan och prioritera DORA/NIS2-dokumentation.
             </p>
           )}
         </div>
@@ -714,7 +742,13 @@ function RiskCard({
   );
 }
 
-function SupplierRecommendationList({ items, profile }: { items: Resolved[]; profile: QuizProfile }) {
+function SupplierRecommendationList({
+  items,
+  profile,
+}: {
+  items: Resolved[];
+  profile: QuizProfile;
+}) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
@@ -734,12 +768,16 @@ function SupplierRecommendationList({ items, profile }: { items: Resolved[]; pro
           const currentScore = weightedCompliance(scoresFor(item), profile);
           const matchScore = match ? weightedCompliance(match.scores, profile) : currentScore;
           return (
-            <article key={item.user.id} className="rounded-2xl border border-border bg-background/70 p-5">
+            <article
+              key={item.user.id}
+              className="rounded-2xl border border-border bg-background/70 p-5"
+            >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-black tracking-tight">{item.user.name}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Data lagras: <span className="font-semibold text-foreground">{item.location}</span>
+                    Data lagras:{" "}
+                    <span className="font-semibold text-foreground">{item.location}</span>
                   </p>
                 </div>
                 <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-wider text-secondary-foreground">
@@ -751,7 +789,9 @@ function SupplierRecommendationList({ items, profile }: { items: Resolved[]; pro
                   Bäst lämpad tech supplier baserat på quiz-svar
                 </p>
                 <p className="mt-1 font-bold text-foreground">
-                  {match ? `${match.name} (${matchScore}%)` : `${item.user.name} (${currentScore}%)`}
+                  {match
+                    ? `${match.name} (${matchScore}%)`
+                    : `${item.user.name} (${currentScore}%)`}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {match
@@ -780,7 +820,9 @@ function ActionButtons() {
       </button>
       <button
         type="button"
-        onClick={() => document.getElementById("eu-alternativ")?.scrollIntoView({ behavior: "smooth" })}
+        onClick={() =>
+          document.getElementById("eu-alternativ")?.scrollIntoView({ behavior: "smooth" })
+        }
         className="inline-flex items-center gap-2 rounded-2xl border-2 border-border bg-background px-5 py-3 text-sm font-bold transition-all hover:border-primary hover:bg-primary/5"
       >
         <ClipboardList className="h-4 w-4" />
@@ -801,21 +843,28 @@ function ScoreRow({ label, value, improved }: { label: string; value: number; im
         </span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full bg-[image:var(--gradient-hero)]" style={{ width: `${target}%` }} />
+        <div
+          className="h-full rounded-full bg-[image:var(--gradient-hero)]"
+          style={{ width: `${target}%` }}
+        />
       </div>
     </div>
   );
 }
 
-function buildInsight(stats: {
-  eu: number;
-  nonEu: number;
-  unknown: number;
-  total: number;
-  high: number;
-  nonEuPct: number;
-  euPct: number;
-}, score: number, blockers: Resolved[]): string[] {
+function buildInsight(
+  stats: {
+    eu: number;
+    nonEu: number;
+    unknown: number;
+    total: number;
+    high: number;
+    nonEuPct: number;
+    euPct: number;
+  },
+  score: number,
+  blockers: Resolved[],
+): string[] {
   if (stats.total === 0) return ["Inga leverantörer att analysera ännu."];
   const parts: string[] = [];
   parts.push(
@@ -876,15 +925,9 @@ function exportReport(
     "Leverantör | Typ | Land | Region | Lagring | Risk | Notering",
     "-----------------------------------------------------------",
     ...items.map((i) =>
-      [
-        i.user.name,
-        i.user.type,
-        i.country,
-        i.region,
-        i.location,
-        riskFor(i),
-        noteFor(i),
-      ].join(" | "),
+      [i.user.name, i.user.type, i.country, i.region, i.location, riskFor(i), noteFor(i)].join(
+        " | ",
+      ),
     ),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
