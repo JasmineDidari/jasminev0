@@ -289,6 +289,11 @@ export function saveUserSuppliers(suppliers: UserSupplier[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(suppliers));
 }
 
+export function clearUserSuppliers() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(STORAGE_KEY);
+}
+
 export function loadUserSuppliers(): UserSupplier[] {
   if (typeof window === "undefined") return [];
   try {
