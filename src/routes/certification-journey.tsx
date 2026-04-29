@@ -5,10 +5,12 @@ import {
   BadgeCheck,
   ClipboardCheck,
   FileCheck2,
+  Lock,
   ShieldCheck,
   Wrench,
 } from "lucide-react";
 import { useAppState } from "@/lib/app-state";
+import { calculateUserScore } from "@/lib/compliance-score";
 
 export const Route = createFileRoute("/certification-journey")({
   head: () => ({
@@ -16,8 +18,7 @@ export const Route = createFileRoute("/certification-journey")({
       { title: "Certification Journey — EUROstack" },
       {
         name: "description",
-        content:
-          "Roadmap från teknisk audit och legal vetting till EUROstack Badge.",
+        content: "Roadmap från teknisk audit och legal vetting till EUROstack Badge.",
       },
       { property: "og:title", content: "EUROstack Certification Journey" },
       {
@@ -48,15 +49,9 @@ const steps = [
 ];
 
 function CertificationJourneyPage() {
-  const { suppliers, strategicQuiz } = useAppState();
-  const completedQuizFields = [
-    strategicQuiz.industry,
-    strategicQuiz.dataTypes.length > 0,
-    strategicQuiz.euStorageImportance,
-    strategicQuiz.exitReadiness,
-    strategicQuiz.nis2Strictness,
-    strategicQuiz.mainDriver,
-  ].filter(Boolean).length;
+  const { suppliers, quizProfile } = useAppState();
+  const userScore = calculateUserScore(suppliers, quizProfile);
+  const canApply = userScore >= 80;
 
   return (
     <div className="min-h-screen bg-[image:var(--gradient-sky)]">
@@ -90,17 +85,27 @@ function CertificationJourneyPage() {
               </span>
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-muted-foreground md:text-xl">
-              En tydlig roadmap från teknisk leverantörsanalys till juridisk granskning och verifierad compliance-status.
+              En tydlig roadmap från teknisk leverantörsanalys till juridisk granskning och
+              verifierad compliance-status.
             </p>
           </div>
 
           <div className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Data från prototypflödet
+              Users score i realtid
             </p>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <Metric label="Suppliers" value={suppliers.length} />
-              <Metric label="Quiz-svar" value={completedQuizFields} />
+            <div className="mt-4">
+              <Metric label="Total Compliance Score" value={userScore} suffix="%" />
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+                <motion.div
+                  className="h-full bg-[image:var(--gradient-hero)]"
+                  animate={{ width: `${userScore}%` }}
+                  transition={{ duration: 0.45 }}
+                />
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Tröskel för ansökan: <span className="font-bold text-foreground">80%</span>
+              </p>
             </div>
           </div>
         </motion.section>
@@ -137,18 +142,29 @@ function CertificationJourneyPage() {
         >
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div>
-              <h2 className="text-2xl font-black tracking-tight">Nästa steg</h2>
+              <h2 className="text-2xl font-black tracking-tight">Ansök om verifiering</h2>
               <p className="mt-2 text-muted-foreground">
-                Fortsätt från dashboarden med blockers, åtgärdslista och EU-matchningar som underlag för audit.
+                Formuläret öppnas när realtidsscoren når minst 80%.
               </p>
             </div>
-            <Link
-              to="/results"
-              className="inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-6 py-4 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
-            >
-              Öppna Value Engine
-              <ArrowRight className="h-5 w-5" />
-            </Link>
+            {canApply ? (
+              <Link
+                to="/application"
+                className="inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-6 py-4 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]"
+              >
+                Fyll i formulär
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="inline-flex cursor-not-allowed items-center gap-3 rounded-2xl bg-muted px-6 py-4 font-bold text-muted-foreground opacity-80"
+              >
+                <Lock className="h-5 w-5" />
+                Fyll i formulär
+              </button>
+            )}
           </div>
         </motion.section>
       </main>
@@ -156,10 +172,13 @@ function CertificationJourneyPage() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
+function Metric({ label, value, suffix = "" }: { label: string; value: number; suffix?: string }) {
   return (
     <div className="rounded-2xl border border-border bg-background/70 p-4">
-      <p className="text-3xl font-black">{value}</p>
+      <p className="text-3xl font-black">
+        {value}
+        {suffix}
+      </p>
       <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
     </div>
   );
