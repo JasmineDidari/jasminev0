@@ -96,19 +96,31 @@
   --warning-foreground: oklch(0.2 0.05 70);
   --destructive: oklch(0.62 0.24 25);
   --destructive-foreground: oklch(0.99 0 0);
-  --home-background: oklch(0.145 0.036 260);
-  --home-surface: oklch(0.18 0.034 260);
-  --home-surface-strong: oklch(0.22 0.04 260);
-  --home-foreground: oklch(0.965 0.006 245);
-  --home-muted: oklch(0.72 0.035 250);
-  --home-border: oklch(0.36 0.045 255 / 0.62);
-  --home-signal: oklch(0.84 0.18 95);
+  --home-background: oklch(0.985 0.012 95);
+  --home-surface: oklch(1 0 0 / 0.86);
+  --home-surface-strong: oklch(0.975 0.025 235);
+  --home-foreground: oklch(0.18 0.04 260);
+  --home-muted: oklch(0.5 0.04 260);
+  --home-border: oklch(0.9 0.02 260 / 0.86);
+  --home-signal: oklch(0.62 0.16 245);
   --border: oklch(0.9 0.02 260);
   --input: oklch(0.93 0.015 260);
   --ring: oklch(0.55 0.22 265);
-  --gradient-hero: linear-gradient(135deg, oklch(0.42 0.13 255) 0%, oklch(0.62 0.16 245) 48%, oklch(0.82 0.1 225) 100%);
-  --gradient-euro: linear-gradient(100deg, oklch(0.7 0.15 230) 0%, oklch(0.82 0.06 150) 48%, oklch(0.86 0.17 95) 100%);
-  --grid-home: linear-gradient(oklch(0.8 0.04 250 / 0.055) 1px, transparent 1px), linear-gradient(90deg, oklch(0.8 0.04 250 / 0.055) 1px, transparent 1px);
+  --gradient-hero: linear-gradient(
+    135deg,
+    oklch(0.42 0.13 255) 0%,
+    oklch(0.62 0.16 245) 48%,
+    oklch(0.82 0.1 225) 100%
+  );
+  --gradient-euro: linear-gradient(
+    100deg,
+    oklch(0.42 0.13 255) 0%,
+    oklch(0.62 0.16 245) 48%,
+    oklch(0.78 0.18 60) 100%
+  );
+  --grid-home:
+    linear-gradient(oklch(0.42 0.13 255 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.42 0.13 255 / 0.07) 1px, transparent 1px);
   --gradient-sky: linear-gradient(180deg, oklch(0.97 0.03 235) 0%, oklch(0.995 0.006 230) 100%);
   --gradient-card: linear-gradient(135deg, oklch(1 0 0) 0%, oklch(0.975 0.025 235) 100%);
   --shadow-soft: 0 10px 40px -12px oklch(0.42 0.13 255 / 0.22);
