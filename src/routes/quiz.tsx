@@ -53,17 +53,12 @@ const driverOptions: MainDriver[] = ["Compliance", "Security", "Cost", "Sovereig
 
 function QuizPage() {
   const navigate = useNavigate();
-  const { strategicQuiz, setStrategicQuiz, resetStrategicQuiz } = useAppState();
+  const { strategicQuiz, setStrategicQuiz } = useAppState();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<StrategicQuizState>({
     ...strategicQuiz,
     dataTypes: strategicQuiz.dataTypes ?? [],
   });
-
-  useEffect(() => {
-    resetStrategicQuiz();
-    setDraft({ dataTypes: [] });
-  }, [resetStrategicQuiz]);
 
   const total = 6;
   const progress = ((step + 1) / total) * 100;
@@ -80,7 +75,7 @@ function QuizPage() {
       return;
     }
     setStrategicQuiz(nextDraft);
-    navigate({ to: "/results" });
+    navigate({ to: "/suppliers" });
   }
 
   function updateAndContinue(next: Partial<StrategicQuizState>) {
@@ -246,7 +241,7 @@ function QuizPage() {
                 disabled={!canContinue}
                 className="inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-6 py-3 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {step + 1 === total ? "Se resultat" : "Nästa"}
+                {step + 1 === total ? "Registrera suppliers" : "Nästa"}
                 <ArrowRight className="h-5 w-5" />
               </button>
             </div>
