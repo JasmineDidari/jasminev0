@@ -1,7 +1,15 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Database, HelpCircle, Layers3, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Database,
+  HelpCircle,
+  Layers3,
+  ShieldCheck,
+} from "lucide-react";
 import {
   useAppState,
   type DataType,
@@ -31,7 +39,14 @@ export const Route = createFileRoute("/quiz")({
 });
 
 const industries: Industry[] = ["Finans", "Hälsa", "Offentlig sektor", "SaaS", "Industri", "Annat"];
-const dataTypes: DataType[] = ["Persondata", "Finansiell data", "Kunddata", "Hälsodata", "Källkod", "Operativ data"];
+const dataTypes: DataType[] = [
+  "Persondata",
+  "Finansiell data",
+  "Kunddata",
+  "Hälsodata",
+  "Källkod",
+  "Operativ data",
+];
 const exitOptions: ExitReadiness[] = ["Låg", "Medel", "Hög"];
 const nis2Options: Nis2Strictness[] = ["Inte alls", "Delvis", "Strikt"];
 const driverOptions: MainDriver[] = ["Compliance", "Security", "Cost", "Sovereignty"];
@@ -40,7 +55,10 @@ function QuizPage() {
   const navigate = useNavigate();
   const { strategicQuiz, setStrategicQuiz, resetStrategicQuiz } = useAppState();
   const [step, setStep] = useState(0);
-  const [draft, setDraft] = useState<StrategicQuizState>({ ...strategicQuiz, dataTypes: strategicQuiz.dataTypes ?? [] });
+  const [draft, setDraft] = useState<StrategicQuizState>({
+    ...strategicQuiz,
+    dataTypes: strategicQuiz.dataTypes ?? [],
+  });
 
   useEffect(() => {
     resetStrategicQuiz();
@@ -55,14 +73,20 @@ function QuizPage() {
     setDraft((current) => ({ ...current, ...next }));
   }
 
-  function next() {
-    if (!canContinue) return;
+  function goNext(nextDraft: StrategicQuizState) {
+    if (!isStepComplete(step, nextDraft)) return;
     if (step + 1 < total) {
       setStep((current) => current + 1);
       return;
     }
-    setStrategicQuiz(draft);
+    setStrategicQuiz(nextDraft);
     navigate({ to: "/results" });
+  }
+
+  function updateAndContinue(next: Partial<StrategicQuizState>) {
+    const nextDraft = { ...draft, ...next };
+    setDraft(nextDraft);
+    window.setTimeout(() => goNext(nextDraft), 180);
   }
 
   return (
@@ -82,7 +106,9 @@ function QuizPage() {
       <main className="container mx-auto max-w-3xl px-6 py-12">
         <div className="mb-10">
           <div className="mb-2 flex justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <span>Fråga {step + 1} av {total}</span>
+            <span>
+              Fråga {step + 1} av {total}
+            </span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -110,7 +136,11 @@ function QuizPage() {
 
             {step === 0 && (
               <Question title="Vilken bransch är företaget inom?">
-                <OptionGrid values={industries} selected={draft.industry} onSelect={(value) => update({ industry: value as Industry })} />
+                <OptionGrid
+                  values={industries}
+                  selected={draft.industry}
+                  onSelect={(value) => updateAndContinue({ industry: value as Industry })}
+                />
               </Question>
             )}
 
@@ -131,10 +161,15 @@ function QuizPage() {
                           })
                         }
                         className={`flex items-center justify-between rounded-2xl border-2 px-5 py-4 text-left font-semibold transition-all ${
-                          selected ? "border-primary bg-primary/10 text-foreground" : "border-border bg-background hover:border-primary"
+                          selected
+                            ? "border-primary bg-primary/10 text-foreground"
+                            : "border-border bg-background hover:border-primary"
                         }`}
                       >
-                        <span className="flex items-center gap-3"><Database className="h-4 w-4 text-primary" />{type}</span>
+                        <span className="flex items-center gap-3">
+                          <Database className="h-4 w-4 text-primary" />
+                          {type}
+                        </span>
                         {selected && <Check className="h-4 w-4 text-primary" />}
                       </button>
                     );
@@ -150,9 +185,11 @@ function QuizPage() {
                     <button
                       key={value}
                       type="button"
-                      onClick={() => update({ euStorageImportance: value })}
+                      onClick={() => updateAndContinue({ euStorageImportance: value })}
                       className={`rounded-2xl border-2 py-5 text-2xl font-black transition-all ${
-                        draft.euStorageImportance === value ? "border-primary bg-primary/10 text-primary" : "border-border bg-background hover:border-primary"
+                        draft.euStorageImportance === value
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-background hover:border-primary"
                       }`}
                     >
                       {value}
@@ -164,19 +201,33 @@ function QuizPage() {
 
             {step === 3 && (
               <Question title="Hur ser beredskap ut för avstängning av utländska tjänster (Exit-strategi)?">
-                <OptionGrid values={exitOptions} selected={draft.exitReadiness} onSelect={(value) => update({ exitReadiness: value as ExitReadiness })} />
+                <OptionGrid
+                  values={exitOptions}
+                  selected={draft.exitReadiness}
+                  onSelect={(value) => updateAndContinue({ exitReadiness: value as ExitReadiness })}
+                />
               </Question>
             )}
 
             {step === 4 && (
               <Question title="Hur strikt regleras ni av NIS2?">
-                <OptionGrid values={nis2Options} selected={draft.nis2Strictness} onSelect={(value) => update({ nis2Strictness: value as Nis2Strictness })} />
+                <OptionGrid
+                  values={nis2Options}
+                  selected={draft.nis2Strictness}
+                  onSelect={(value) =>
+                    updateAndContinue({ nis2Strictness: value as Nis2Strictness })
+                  }
+                />
               </Question>
             )}
 
             {step === 5 && (
               <Question title="Viktigaste drivkraft?">
-                <OptionGrid values={driverOptions} selected={draft.mainDriver} onSelect={(value) => update({ mainDriver: value as MainDriver })} />
+                <OptionGrid
+                  values={driverOptions}
+                  selected={draft.mainDriver}
+                  onSelect={(value) => updateAndContinue({ mainDriver: value as MainDriver })}
+                />
               </Question>
             )}
 
@@ -191,7 +242,7 @@ function QuizPage() {
               </button>
               <button
                 type="button"
-                onClick={next}
+                onClick={() => goNext(draft)}
                 disabled={!canContinue}
                 className="inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-6 py-3 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)] disabled:cursor-not-allowed disabled:opacity-40"
               >
@@ -215,7 +266,15 @@ function Question({ title, children }: { title: string; children: React.ReactNod
   );
 }
 
-function OptionGrid({ values, selected, onSelect }: { values: string[]; selected?: string; onSelect: (value: string) => void }) {
+function OptionGrid({
+  values,
+  selected,
+  onSelect,
+}: {
+  values: string[];
+  selected?: string;
+  onSelect: (value: string) => void;
+}) {
   return (
     <div className="grid gap-3 md:grid-cols-2">
       {values.map((value) => (
@@ -224,10 +283,15 @@ function OptionGrid({ values, selected, onSelect }: { values: string[]; selected
           type="button"
           onClick={() => onSelect(value)}
           className={`group flex items-center justify-between rounded-2xl border-2 px-5 py-4 text-left font-semibold transition-all ${
-            selected === value ? "border-primary bg-primary/10 text-foreground" : "border-border bg-background hover:border-primary hover:bg-primary/5"
+            selected === value
+              ? "border-primary bg-primary/10 text-foreground"
+              : "border-border bg-background hover:border-primary hover:bg-primary/5"
           }`}
         >
-          <span className="flex items-center gap-3"><HelpCircle className="h-4 w-4 text-primary" />{value}</span>
+          <span className="flex items-center gap-3">
+            <HelpCircle className="h-4 w-4 text-primary" />
+            {value}
+          </span>
           <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
         </button>
       ))}
