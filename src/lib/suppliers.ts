@@ -7,18 +7,9 @@ export type SupplierInfo = {
   riskNote: string;
 };
 
-export type SupplierType =
-  | "SaaS"
-  | "Cloud"
-  | "Infra"
-  | "Consultant";
+export type SupplierType = "SaaS" | "Cloud" | "Infra" | "Consultant";
 
-export const SUPPLIER_TYPES: SupplierType[] = [
-  "SaaS",
-  "Cloud",
-  "Infra",
-  "Consultant",
-];
+export const SUPPLIER_TYPES: SupplierType[] = ["SaaS", "Cloud", "Infra", "Consultant"];
 
 export type UserSupplier = {
   id: string;
@@ -71,11 +62,49 @@ export const SUPPLIER_LOCATION: Record<string, string> = {
 };
 
 const EU_COUNTRIES = new Set([
-  "sverige","sweden","tyskland","germany","frankrike","france","spanien","spain",
-  "italien","italy","nederländerna","netherlands","danmark","denmark","norge","norway",
-  "finland","polen","poland","irland","ireland","belgien","belgium","österrike","austria",
-  "portugal","schweiz","switzerland","estland","estonia","lettland","latvia","litauen","lithuania",
-  "tjeckien","czechia","grekland","greece","ungern","hungary","rumänien","romania","eu",
+  "sverige",
+  "sweden",
+  "tyskland",
+  "germany",
+  "frankrike",
+  "france",
+  "spanien",
+  "spain",
+  "italien",
+  "italy",
+  "nederländerna",
+  "netherlands",
+  "danmark",
+  "denmark",
+  "norge",
+  "norway",
+  "finland",
+  "polen",
+  "poland",
+  "irland",
+  "ireland",
+  "belgien",
+  "belgium",
+  "österrike",
+  "austria",
+  "portugal",
+  "schweiz",
+  "switzerland",
+  "estland",
+  "estonia",
+  "lettland",
+  "latvia",
+  "litauen",
+  "lithuania",
+  "tjeckien",
+  "czechia",
+  "grekland",
+  "greece",
+  "ungern",
+  "hungary",
+  "rumänien",
+  "romania",
+  "eu",
 ]);
 
 export function isEUCountry(country: string): boolean {
@@ -315,9 +344,7 @@ export function resolveSupplier(name: string): SupplierInfo | null {
 }
 
 export function locationFor(name: string): string | null {
-  const key = Object.keys(SUPPLIER_LOCATION).find(
-    (k) => k.toLowerCase() === name.toLowerCase(),
-  );
+  const key = Object.keys(SUPPLIER_LOCATION).find((k) => k.toLowerCase() === name.toLowerCase());
   return key ? SUPPLIER_LOCATION[key] : null;
 }
 

@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   clearUserSuppliers,
   loadUserSuppliers,
@@ -8,7 +16,13 @@ import {
 } from "@/lib/suppliers";
 
 export type Industry = "Finans" | "Hälsa" | "Offentlig sektor" | "SaaS" | "Industri" | "Annat";
-export type DataType = "Persondata" | "Finansiell data" | "Kunddata" | "Hälsodata" | "Källkod" | "Operativ data";
+export type DataType =
+  | "Persondata"
+  | "Finansiell data"
+  | "Kunddata"
+  | "Hälsodata"
+  | "Källkod"
+  | "Operativ data";
 export type ExitReadiness = "Låg" | "Medel" | "Hög";
 export type Nis2Strictness = "Inte alls" | "Delvis" | "Strikt";
 export type MainDriver = "Compliance" | "Security" | "Cost" | "Sovereignty";
@@ -62,12 +76,15 @@ function loadStrategicQuiz(): StrategicQuizState {
     const stored = window.localStorage.getItem("eurostack_strategic_quiz");
     if (stored) return { ...defaultStrategicQuiz, ...JSON.parse(stored) } as StrategicQuizState;
 
-    const legacyAnswers = JSON.parse(window.localStorage.getItem("eurostack_quiz_answers") ?? "[]") as string[];
+    const legacyAnswers = JSON.parse(
+      window.localStorage.getItem("eurostack_quiz_answers") ?? "[]",
+    ) as string[];
     if (legacyAnswers.length) {
       return {
         dataTypes: [],
         euStorageImportance: legacyAnswers[2] === "ja" ? 5 : legacyAnswers[2] === "osaker" ? 3 : 2,
-        exitReadiness: legacyAnswers[3] === "ja" ? "Hög" : legacyAnswers[3] === "osaker" ? "Medel" : "Låg",
+        exitReadiness:
+          legacyAnswers[3] === "ja" ? "Hög" : legacyAnswers[3] === "osaker" ? "Medel" : "Låg",
         nis2Strictness: legacyAnswers[4] === "ja" ? "Strikt" : "Delvis",
         mainDriver: legacyAnswers[1] === "ja" ? "Sovereignty" : "Compliance",
       };
