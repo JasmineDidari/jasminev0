@@ -55,14 +55,20 @@ function QuizPage() {
     setDraft((current) => ({ ...current, ...next }));
   }
 
-  function next() {
+  function goNext(nextDraft: StrategicQuizState) {
     if (!canContinue) return;
     if (step + 1 < total) {
       setStep((current) => current + 1);
       return;
     }
-    setStrategicQuiz(draft);
+    setStrategicQuiz(nextDraft);
     navigate({ to: "/results" });
+  }
+
+  function updateAndContinue(next: Partial<StrategicQuizState>) {
+    const nextDraft = { ...draft, ...next };
+    setDraft(nextDraft);
+    window.setTimeout(() => goNext(nextDraft), 180);
   }
 
   return (
@@ -110,7 +116,7 @@ function QuizPage() {
 
             {step === 0 && (
               <Question title="Vilken bransch är företaget inom?">
-                <OptionGrid values={industries} selected={draft.industry} onSelect={(value) => update({ industry: value as Industry })} />
+                <OptionGrid values={industries} selected={draft.industry} onSelect={(value) => updateAndContinue({ industry: value as Industry })} />
               </Question>
             )}
 
@@ -150,7 +156,7 @@ function QuizPage() {
                     <button
                       key={value}
                       type="button"
-                      onClick={() => update({ euStorageImportance: value })}
+                      onClick={() => updateAndContinue({ euStorageImportance: value })}
                       className={`rounded-2xl border-2 py-5 text-2xl font-black transition-all ${
                         draft.euStorageImportance === value ? "border-primary bg-primary/10 text-primary" : "border-border bg-background hover:border-primary"
                       }`}
@@ -164,19 +170,19 @@ function QuizPage() {
 
             {step === 3 && (
               <Question title="Hur ser beredskap ut för avstängning av utländska tjänster (Exit-strategi)?">
-                <OptionGrid values={exitOptions} selected={draft.exitReadiness} onSelect={(value) => update({ exitReadiness: value as ExitReadiness })} />
+                <OptionGrid values={exitOptions} selected={draft.exitReadiness} onSelect={(value) => updateAndContinue({ exitReadiness: value as ExitReadiness })} />
               </Question>
             )}
 
             {step === 4 && (
               <Question title="Hur strikt regleras ni av NIS2?">
-                <OptionGrid values={nis2Options} selected={draft.nis2Strictness} onSelect={(value) => update({ nis2Strictness: value as Nis2Strictness })} />
+                <OptionGrid values={nis2Options} selected={draft.nis2Strictness} onSelect={(value) => updateAndContinue({ nis2Strictness: value as Nis2Strictness })} />
               </Question>
             )}
 
             {step === 5 && (
               <Question title="Viktigaste drivkraft?">
-                <OptionGrid values={driverOptions} selected={draft.mainDriver} onSelect={(value) => update({ mainDriver: value as MainDriver })} />
+                <OptionGrid values={driverOptions} selected={draft.mainDriver} onSelect={(value) => updateAndContinue({ mainDriver: value as MainDriver })} />
               </Question>
             )}
 
@@ -191,7 +197,7 @@ function QuizPage() {
               </button>
               <button
                 type="button"
-                onClick={next}
+                onClick={() => goNext(draft)}
                 disabled={!canContinue}
                 className="inline-flex items-center gap-3 rounded-2xl bg-[image:var(--gradient-hero)] px-6 py-3 font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)] disabled:cursor-not-allowed disabled:opacity-40"
               >
