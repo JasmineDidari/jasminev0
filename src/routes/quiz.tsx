@@ -56,7 +56,7 @@ function QuizPage() {
   }
 
   function goNext(nextDraft: StrategicQuizState) {
-    if (!canContinue) return;
+    if (!isStepComplete(step, nextDraft)) return;
     if (step + 1 < total) {
       setStep((current) => current + 1);
       return;
